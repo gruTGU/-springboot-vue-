@@ -115,7 +115,7 @@
               <el-table-column prop="programName" label="培养方案" />
               <el-table-column prop="courseCount" label="课程数量" width="120" />
             </el-table>
-            <div v-if="courseByProgram.length > 5" class="table-actions">
+            <div v-if="courseByProgram.length > tablePreviewLimit" class="table-actions">
               <el-button type="primary" link @click="toggleCourseByProgram">
                 {{ showAllCourseByProgram ? "收起" : "查看更多" }}
               </el-button>
@@ -133,7 +133,7 @@
               <el-table-column prop="courseNature" label="课程性质" />
               <el-table-column prop="courseCount" label="数量" width="120" />
             </el-table>
-            <div v-if="courseByNature.length > 5" class="table-actions">
+            <div v-if="courseByNature.length > tablePreviewLimit" class="table-actions">
               <el-button type="primary" link @click="toggleCourseByNature">
                 {{ showAllCourseByNature ? "收起" : "查看更多" }}
               </el-button>
@@ -155,7 +155,7 @@
               <el-table-column prop="knowledgePointCount" label="知识点数量" width="120" />
               <el-table-column prop="questionCount" label="题目数量" width="120" />
             </el-table>
-            <div v-if="knowledgePointByCourse.length > 5" class="table-actions">
+            <div v-if="knowledgePointByCourse.length > tablePreviewLimit" class="table-actions">
               <el-button
                 type="primary"
                 link
@@ -181,7 +181,7 @@
               <el-table-column prop="courseName" label="课程" />
               <el-table-column prop="questionCount" label="题目数量" width="120" />
             </el-table>
-            <div v-if="knowledgePointCoverage.length > 5" class="table-actions">
+            <div v-if="knowledgePointCoverage.length > tablePreviewLimit" class="table-actions">
               <el-button
                 type="primary"
                 link
@@ -283,6 +283,7 @@ const knowledgePointCoverage = ref([]);
 const knowledgePointByCourse = ref([]);
 const paperTypeDist = ref([]);
 const papersByCourse = ref([]);
+const tablePreviewLimit = 5;
 
 const showAllCourseByProgram = ref(false);
 const showAllCourseByNature = ref(false);
@@ -292,22 +293,22 @@ const showAllKnowledgePointByCourse = ref(false);
 const visibleCourseByProgram = computed(() =>
   showAllCourseByProgram.value
     ? courseByProgram.value
-    : courseByProgram.value.slice(0, 5)
+    : courseByProgram.value.slice(0, tablePreviewLimit)
 );
 const visibleCourseByNature = computed(() =>
   showAllCourseByNature.value
     ? courseByNature.value
-    : courseByNature.value.slice(0, 5)
+    : courseByNature.value.slice(0, tablePreviewLimit)
 );
 const visibleKnowledgePointCoverage = computed(() =>
   showAllKnowledgePointCoverage.value
     ? knowledgePointCoverage.value
-    : knowledgePointCoverage.value.slice(0, 5)
+    : knowledgePointCoverage.value.slice(0, tablePreviewLimit)
 );
 const visibleKnowledgePointByCourse = computed(() =>
   showAllKnowledgePointByCourse.value
     ? knowledgePointByCourse.value
-    : knowledgePointByCourse.value.slice(0, 5)
+    : knowledgePointByCourse.value.slice(0, tablePreviewLimit)
 );
 
 const toggleCourseByProgram = () => {
