@@ -2,6 +2,7 @@ package com.example.coursemanagement.repository;
 
 import com.example.coursemanagement.entity.TrainingProgram;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -45,6 +46,18 @@ public class TrainingProgramRepository {
      * 新增培养方案
      */
     public int save(TrainingProgram program) {
+        try {
+            return doSave(program);
+        } catch (BadSqlGrammarException ex) {
+            if (isUnknownColumnError(ex)) {
+                resetAvailableColumns();
+                return doSave(program);
+            }
+            throw ex;
+        }
+    }
+
+    private int doSave(TrainingProgram program) {
         Set<String> columns = getAvailableColumns();
         List<String> insertColumns = new ArrayList<>();
         List<Object> params = new ArrayList<>();
@@ -104,6 +117,18 @@ public class TrainingProgramRepository {
      * 更新培养方案
      */
     public int update(TrainingProgram program) {
+        try {
+            return doUpdate(program);
+        } catch (BadSqlGrammarException ex) {
+            if (isUnknownColumnError(ex)) {
+                resetAvailableColumns();
+                return doUpdate(program);
+            }
+            throw ex;
+        }
+    }
+
+    private int doUpdate(TrainingProgram program) {
         Set<String> columns = getAvailableColumns();
         List<String> updates = new ArrayList<>();
         List<Object> params = new ArrayList<>();
@@ -159,6 +184,15 @@ public class TrainingProgramRepository {
             availableColumns = Collections.unmodifiableSet(new HashSet<>(columns));
             return availableColumns;
         }
+    }
+
+    private void resetAvailableColumns() {
+        availableColumns = null;
+    }
+
+    private boolean isUnknownColumnError(BadSqlGrammarException ex) {
+        String message = ex.getMessage();
+        return message != null && message.contains("Unknown column");
     }
 
     /**
