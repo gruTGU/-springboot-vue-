@@ -6,8 +6,12 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * 培养方案数据访问层，使用Spring JDBC Template实现
@@ -18,7 +22,7 @@ public class TrainingProgramRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private volatile Boolean descriptionColumnAvailable;
+    private volatile Set<String> availableColumns;
 
     /**
      * 查询所有培养方案
@@ -41,62 +45,119 @@ public class TrainingProgramRepository {
      * 新增培养方案
      */
     public int save(TrainingProgram program) {
-        if (isDescriptionColumnAvailable()) {
-            String sql = "INSERT INTO training_program (major_name, duration, total_credit, effective_year, description, create_time, update_time) VALUES (?, ?, ?, ?, ?, NOW(), NOW())";
-            return jdbcTemplate.update(sql,
-                    program.getMajorName(),
-                    program.getDuration(),
-                    program.getTotalCredit(),
-                    program.getEffectiveYear(),
-                    program.getDescription());
+        Set<String> columns = getAvailableColumns();
+        List<String> insertColumns = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+
+        if (columns.contains("major_name")) {
+            insertColumns.add("major_name");
+            params.add(program.getMajorName());
+        }
+        if (columns.contains("duration")) {
+            insertColumns.add("duration");
+            params.add(program.getDuration());
+        }
+        if (columns.contains("total_credit")) {
+            insertColumns.add("total_credit");
+            params.add(program.getTotalCredit());
+        }
+        if (columns.contains("effective_year")) {
+            insertColumns.add("effective_year");
+            params.add(program.getEffectiveYear());
+        }
+        if (columns.contains("description")) {
+            insertColumns.add("description");
+            params.add(program.getDescription());
         }
 
-        String fallbackSql = "INSERT INTO training_program (major_name, duration, total_credit, effective_year, create_time, update_time) VALUES (?, ?, ?, ?, NOW(), NOW())";
-        return jdbcTemplate.update(fallbackSql,
-                program.getMajorName(),
-                program.getDuration(),
-                program.getTotalCredit(),
-                program.getEffectiveYear());
+        if (insertColumns.isEmpty() && !columns.contains("create_time") && !columns.contains("update_time")) {
+            return 0;
+        }
+
+        StringBuilder sql = new StringBuilder("INSERT INTO training_program (");
+        sql.append(String.join(", ", insertColumns));
+        if (columns.contains("create_time")) {
+            sql.append(insertColumns.isEmpty() ? "create_time" : ", create_time");
+        }
+        if (columns.contains("update_time")) {
+            sql.append(insertColumns.isEmpty() && !columns.contains("create_time") ? "update_time" : ", update_time");
+        }
+        sql.append(") VALUES (");
+
+        List<String> placeholders = new ArrayList<>();
+        for (int i = 0; i < insertColumns.size(); i++) {
+            placeholders.add("?");
+        }
+        if (columns.contains("create_time")) {
+            placeholders.add("NOW()");
+        }
+        if (columns.contains("update_time")) {
+            placeholders.add("NOW()");
+        }
+        sql.append(String.join(", ", placeholders));
+        sql.append(")");
+
+        return jdbcTemplate.update(sql.toString(), params.toArray());
     }
 
     /**
      * 更新培养方案
      */
     public int update(TrainingProgram program) {
-        if (isDescriptionColumnAvailable()) {
-            String sql = "UPDATE training_program SET major_name = ?, duration = ?, total_credit = ?, effective_year = ?, description = ?, update_time = NOW() WHERE program_id = ?";
-            return jdbcTemplate.update(sql,
-                    program.getMajorName(),
-                    program.getDuration(),
-                    program.getTotalCredit(),
-                    program.getEffectiveYear(),
-                    program.getDescription(),
-                    program.getProgramId());
+        Set<String> columns = getAvailableColumns();
+        List<String> updates = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+
+        if (columns.contains("major_name")) {
+            updates.add("major_name = ?");
+            params.add(program.getMajorName());
+        }
+        if (columns.contains("duration")) {
+            updates.add("duration = ?");
+            params.add(program.getDuration());
+        }
+        if (columns.contains("total_credit")) {
+            updates.add("total_credit = ?");
+            params.add(program.getTotalCredit());
+        }
+        if (columns.contains("effective_year")) {
+            updates.add("effective_year = ?");
+            params.add(program.getEffectiveYear());
+        }
+        if (columns.contains("description")) {
+            updates.add("description = ?");
+            params.add(program.getDescription());
+        }
+        if (columns.contains("update_time")) {
+            updates.add("update_time = NOW()");
         }
 
-        String fallbackSql = "UPDATE training_program SET major_name = ?, duration = ?, total_credit = ?, effective_year = ?, update_time = NOW() WHERE program_id = ?";
-        return jdbcTemplate.update(fallbackSql,
-                program.getMajorName(),
-                program.getDuration(),
-                program.getTotalCredit(),
-                program.getEffectiveYear(),
-                program.getProgramId());
+        if (updates.isEmpty()) {
+            return 0;
+        }
+
+        StringBuilder sql = new StringBuilder("UPDATE training_program SET ");
+        sql.append(String.join(", ", updates));
+        sql.append(" WHERE program_id = ?");
+        params.add(program.getProgramId());
+
+        return jdbcTemplate.update(sql.toString(), params.toArray());
     }
 
-    private boolean isDescriptionColumnAvailable() {
-        if (descriptionColumnAvailable != null) {
-            return descriptionColumnAvailable;
+    private Set<String> getAvailableColumns() {
+        if (availableColumns != null) {
+            return availableColumns;
         }
         synchronized (this) {
-            if (descriptionColumnAvailable != null) {
-                return descriptionColumnAvailable;
+            if (availableColumns != null) {
+                return availableColumns;
             }
-            Integer count = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'training_program' AND column_name = 'description'",
-                    Integer.class
+            List<String> columns = jdbcTemplate.query(
+                    "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'training_program'",
+                    (rs, rowNum) -> rs.getString("column_name")
             );
-            descriptionColumnAvailable = count != null && count > 0;
-            return descriptionColumnAvailable;
+            availableColumns = Collections.unmodifiableSet(new HashSet<>(columns));
+            return availableColumns;
         }
     }
 
