@@ -3,12 +3,17 @@
     <el-card class="mb-4">
       <template #header>
         <div class="card-header">
-          <span>试卷列表</span>
+          <!-- 仅改标题：标题 + 副标题（其余不动） -->
+          <div class="title-wrap">
+            <div class="page-title">试卷列表</div>
+            <div class="page-subtitle">支持手动维护、批量删除与自动组卷，统一管理试卷与题目</div>
+          </div>
+
           <div class="header-actions">
             <el-button
-              type="danger"
-              @click="handleBatchDelete"
-              :disabled="selectedPaperIds.length === 0"
+                type="danger"
+                @click="handleBatchDelete"
+                :disabled="selectedPaperIds.length === 0"
             >
               <el-icon><Delete /></el-icon>
               批量删除
@@ -26,10 +31,10 @@
       </template>
 
       <el-table
-        :data="papers"
-        border
-        stripe
-        @selection-change="handleSelectionChange"
+          :data="papers"
+          border
+          stripe
+          @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" />
         <el-table-column prop="paperId" label="试卷ID" width="80" />
@@ -37,53 +42,100 @@
         <el-table-column prop="courseId" label="课程ID" width="80" />
         <el-table-column prop="totalScore" label="总分" width="80" />
         <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="250" fixed="right">
+        <el-table-column label="操作" width="500" fixed="right" align="center">
           <template #default="scope">
-            <el-button
-              type="primary"
-              size="small"
-              @click="handleEditPaper(scope.row)"
-            >
-              <el-icon><Edit /></el-icon>
-              编辑
-            </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              @click="handleDeletePaper(scope.row.paperId)"
-            >
-              <el-icon><Delete /></el-icon>
-              删除
-            </el-button>
-            <el-button
-              type="success"
-              size="small"
-              @click="handleViewPaper(scope.row.paperId)"
-            >
-              <el-icon><View /></el-icon>
-              查看
-            </el-button>
-            <el-button
-              type="warning"
-              size="small"
-              @click="handleManageQuestions(scope.row.paperId)"
-            >
-              <el-icon><List /></el-icon>
-              题目管理
-            </el-button>
+            <el-space :size="6" wrap="false">
+              <el-button
+                  type="primary"
+                  size="small"
+                  plain
+                  @click="handleEditPaper(scope.row)"
+              >
+                <el-icon><Edit /></el-icon>
+                编辑
+              </el-button>
+
+              <el-button
+                  type="danger"
+                  size="small"
+                  plain
+                  @click="handleDeletePaper(scope.row.paperId)"
+              >
+                <el-icon><Delete /></el-icon>
+                删除
+              </el-button>
+
+<!--              <el-button-->
+<!--                  type="success"-->
+<!--                  size="small"-->
+<!--                  plain-->
+<!--                  @click="handleViewPaper(scope.row.paperId)"-->
+<!--              >-->
+<!--                <el-icon><View /></el-icon>-->
+<!--                查看-->
+<!--              </el-button>-->
+
+              <el-button
+                  type="warning"
+                  size="small"
+                  plain
+                  @click="handleManageQuestions(scope.row.paperId)"
+              >
+                <el-icon><List /></el-icon>
+                  查看题目
+              </el-button>
+            </el-space>
           </template>
         </el-table-column>
+
+
+        <!--        <el-table-column label="操作" width="250" fixed="right">-->
+        <!--          <template #default="scope">-->
+        <!--            <el-button-->
+        <!--              type="primary"-->
+        <!--              size="small"-->
+        <!--              @click="handleEditPaper(scope.row)"-->
+        <!--            >-->
+        <!--              <el-icon><Edit /></el-icon>-->
+        <!--              编辑-->
+        <!--            </el-button>-->
+        <!--            <el-button-->
+        <!--              type="danger"-->
+        <!--              size="small"-->
+        <!--              @click="handleDeletePaper(scope.row.paperId)"-->
+        <!--            >-->
+        <!--              <el-icon><Delete /></el-icon>-->
+        <!--              删除-->
+        <!--            </el-button>-->
+        <!--            <el-button-->
+        <!--              type="success"-->
+        <!--              size="small"-->
+        <!--              @click="handleViewPaper(scope.row.paperId)"-->
+        <!--            >-->
+        <!--              <el-icon><View /></el-icon>-->
+        <!--              查看-->
+        <!--            </el-button>-->
+        <!--            <el-button-->
+        <!--              type="warning"-->
+        <!--              size="small"-->
+        <!--              @click="handleManageQuestions(scope.row.paperId)"-->
+        <!--            >-->
+        <!--              <el-icon><List /></el-icon>-->
+        <!--              题目管理-->
+        <!--            </el-button>-->
+        <!--          </template>-->
+        <!--        </el-table-column>-->
       </el-table>
 
       <div class="pagination mt-4">
         <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50, 100]"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
         />
       </div>
     </el-card>
@@ -93,27 +145,27 @@
       <el-form :model="paperForm" label-width="120px">
         <el-form-item label="试卷名称" required>
           <el-input
-            v-model="paperForm.paperName"
-            placeholder="请输入试卷名称"
+              v-model="paperForm.paperName"
+              placeholder="请输入试卷名称"
           />
         </el-form-item>
         <el-form-item label="所属课程" required>
           <el-select v-model="paperForm.courseId" placeholder="请选择课程">
             <el-option
-              v-for="course in courses"
-              :key="course.courseId"
-              :label="course.courseName"
-              :value="course.courseId"
+                v-for="course in courses"
+                :key="course.courseId"
+                :label="course.courseName"
+                :value="course.courseId"
             />
           </el-select>
         </el-form-item>
         <el-form-item label="总分" required>
           <el-input
-            v-model.number="paperForm.totalScore"
-            placeholder="请输入试卷总分"
-            type="number"
-            min="0"
-            step="0.5"
+              v-model.number="paperForm.totalScore"
+              placeholder="请输入试卷总分"
+              type="number"
+              min="0"
+              step="0.5"
           />
         </el-form-item>
       </el-form>
@@ -127,70 +179,70 @@
 
     <!-- 自动组卷对话框 -->
     <el-dialog
-      v-model="autoGenerateDialogVisible"
-      title="自动组卷"
-      width="800px"
+        v-model="autoGenerateDialogVisible"
+        title="自动组卷"
+        width="800px"
     >
       <el-form :model="autoGenerateForm" label-width="120px">
         <el-form-item label="试卷名称" required>
           <el-input
-            v-model="autoGenerateForm.paperName"
-            placeholder="请输入试卷名称"
+              v-model="autoGenerateForm.paperName"
+              placeholder="请输入试卷名称"
           />
         </el-form-item>
         <el-form-item label="所属课程" required>
           <el-select
-            v-model="autoGenerateForm.courseId"
-            placeholder="请选择课程"
-            @change="handleCourseChange"
+              v-model="autoGenerateForm.courseId"
+              placeholder="请选择课程"
+              @change="handleCourseChange"
           >
             <el-option
-              v-for="course in courses"
-              :key="course.courseId"
-              :label="course.courseName"
-              :value="course.courseId"
+                v-for="course in courses"
+                :key="course.courseId"
+                :label="course.courseName"
+                :value="course.courseId"
             />
           </el-select>
         </el-form-item>
         <el-form-item label="总分" required>
           <el-input
-            v-model.number="autoGenerateForm.totalScore"
-            placeholder="请输入试卷总分"
-            type="number"
-            min="0"
-            step="0.5"
+              v-model.number="autoGenerateForm.totalScore"
+              placeholder="请输入试卷总分"
+              type="number"
+              min="0"
+              step="0.5"
           />
         </el-form-item>
         <el-form-item label="难度分布" required>
           <div class="difficulty-distribution">
             <el-form-item label="简单" required>
               <el-slider
-                v-model="autoGenerateForm.difficultyDistribution['简单']"
-                :min="0"
-                :max="1"
-                :step="0.1"
-                show-input
-                :input-format="(value) => value * 100 + '%'"
+                  v-model="autoGenerateForm.difficultyDistribution['简单']"
+                  :min="0"
+                  :max="1"
+                  :step="0.1"
+                  show-input
+                  :input-format="(value) => value * 100 + '%'"
               />
             </el-form-item>
             <el-form-item label="中等" required>
               <el-slider
-                v-model="autoGenerateForm.difficultyDistribution['中等']"
-                :min="0"
-                :max="1"
-                :step="0.1"
-                show-input
-                :input-format="(value) => value * 100 + '%'"
+                  v-model="autoGenerateForm.difficultyDistribution['中等']"
+                  :min="0"
+                  :max="1"
+                  :step="0.1"
+                  show-input
+                  :input-format="(value) => value * 100 + '%'"
               />
             </el-form-item>
             <el-form-item label="困难" required>
               <el-slider
-                v-model="autoGenerateForm.difficultyDistribution['困难']"
-                :min="0"
-                :max="1"
-                :step="0.1"
-                show-input
-                :input-format="(value) => value * 100 + '%'"
+                  v-model="autoGenerateForm.difficultyDistribution['困难']"
+                  :min="0"
+                  :max="1"
+                  :step="0.1"
+                  show-input
+                  :input-format="(value) => value * 100 + '%'"
               />
             </el-form-item>
           </div>
@@ -202,12 +254,12 @@
             <el-table-column label="权重" width="200">
               <template #default="scope">
                 <el-slider
-                  v-model="scope.row.weight"
-                  :min="0"
-                  :max="1"
-                  :step="0.01"
-                  show-input
-                  :input-format="(value) => value * 100 + '%'"
+                    v-model="scope.row.weight"
+                    :min="0"
+                    :max="1"
+                    :step="0.01"
+                    show-input
+                    :input-format="(value) => value * 100 + '%'"
                 />
               </template>
             </el-table-column>
@@ -218,7 +270,7 @@
         <span class="dialog-footer">
           <el-button @click="autoGenerateDialogVisible = false">取消</el-button>
           <el-button type="primary" @click="handleGeneratePaper"
-            >生成试卷</el-button
+          >生成试卷</el-button
           >
         </span>
       </template>
@@ -226,54 +278,54 @@
 
     <!-- 题目管理对话框 -->
     <el-dialog
-      v-model="questionManageDialogVisible"
-      :title="`试卷题目管理 - ${currentPaperId}`"
-      width="1000px"
+        v-model="questionManageDialogVisible"
+        :title="`试卷题目管理 - ${currentPaperId}`"
+        width="1000px"
     >
       <div class="question-manage-header">
         <el-button type="primary" @click="handleAddQuestion"
-          >添加题目</el-button
+        >添加题目</el-button
         >
         <el-button
-          type="danger"
-          @click="handleClearQuestions"
-          :disabled="paperQuestions.length === 0"
-          >清空题目</el-button
+            type="danger"
+            @click="handleClearQuestions"
+            :disabled="paperQuestions.length === 0"
+        >清空题目</el-button
         >
       </div>
 
       <el-table :data="paperQuestions" border stripe style="margin-top: 20px">
         <el-table-column prop="questionOrder" label="题目顺序" width="100" />
         <el-table-column
-          prop="question.questionType"
-          label="题目类型"
-          width="100"
+            prop="question.questionType"
+            label="题目类型"
+            width="100"
         >
           <template #default="scope">
             {{
               scope.row.question?.questionType === 1
-                ? "单选题"
-                : scope.row.question?.questionType === 2
-                ? "多选题"
-                : scope.row.question?.questionType === 3
-                ? "判断题"
-                : scope.row.question?.questionType === 4
-                ? "填空题"
-                : scope.row.question?.questionType === 5
-                ? "简答题"
-                : "未知"
+                  ? "单选题"
+                  : scope.row.question?.questionType === 2
+                      ? "多选题"
+                      : scope.row.question?.questionType === 3
+                          ? "判断题"
+                          : scope.row.question?.questionType === 4
+                              ? "填空题"
+                              : scope.row.question?.questionType === 5
+                                  ? "简答题"
+                                  : "未知"
             }}
           </template>
         </el-table-column>
         <el-table-column
-          prop="question.questionContent"
-          label="题目内容"
-          min-width="300"
+            prop="question.questionContent"
+            label="题目内容"
+            min-width="300"
         >
           <template #default="scope">
             <div
-              v-if="scope.row.question"
-              v-html="scope.row.question.questionContent"
+                v-if="scope.row.question"
+                v-html="scope.row.question.questionContent"
             ></div>
           </template>
         </el-table-column>
@@ -281,19 +333,19 @@
         <el-table-column prop="questionScore" label="分数" width="100">
           <template #default="scope">
             <el-input-number
-              v-model="scope.row.questionScore"
-              :min="0"
-              :step="0.5"
-              style="width: 100%"
+                v-model="scope.row.questionScore"
+                :min="0"
+                :step="0.5"
+                style="width: 100%"
             />
           </template>
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="scope">
             <el-button
-              type="danger"
-              size="small"
-              @click="handleRemoveQuestion(scope.row.detailId)"
+                type="danger"
+                size="small"
+                @click="handleRemoveQuestion(scope.row.detailId)"
             >
               <el-icon><Delete /></el-icon>
               删除
@@ -305,7 +357,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="questionManageDialogVisible = false"
-            >关闭</el-button
+          >关闭</el-button
           >
         </span>
       </template>
@@ -313,16 +365,16 @@
 
     <!-- 添加题目对话框 -->
     <el-dialog
-      v-model="addQuestionDialogVisible"
-      title="添加题目到试卷"
-      width="800px"
+        v-model="addQuestionDialogVisible"
+        title="添加题目到试卷"
+        width="800px"
     >
       <el-table
-        :data="availableQuestions"
-        border
-        stripe
-        @selection-change="handleQuestionSelectionChange"
-        style="margin-bottom: 20px"
+          :data="availableQuestions"
+          border
+          stripe
+          @selection-change="handleQuestionSelectionChange"
+          style="margin-bottom: 20px"
       >
         <el-table-column type="selection" width="55" />
         <el-table-column prop="questionId" label="题目ID" width="100" />
@@ -335,7 +387,7 @@
         <span class="dialog-footer">
           <el-button @click="addQuestionDialogVisible = false">取消</el-button>
           <el-button type="primary" @click="handleConfirmAddQuestion"
-            >确定添加</el-button
+          >确定添加</el-button
           >
           >
         </span>
@@ -498,17 +550,17 @@ const handleCourseChange = async (courseId) => {
 
     // 将后端的kpId和kpName转换为前端需要的pointId和pointName
     const courseKnowledgePoints = response
-      .filter((point) => point && point.kpId && point.kpName) // 过滤掉无效数据
-      .map((point) => ({
-        pointId: point.kpId,
-        pointName: point.kpName,
-        courseId: point.courseId,
-        parentId: point.parentId,
-        description: point.description,
-        difficulty: point.difficulty,
-        createTime: point.createTime,
-        updateTime: point.updateTime,
-      }));
+        .filter((point) => point && point.kpId && point.kpName) // 过滤掉无效数据
+        .map((point) => ({
+          pointId: point.kpId,
+          pointName: point.kpName,
+          courseId: point.courseId,
+          parentId: point.parentId,
+          description: point.description,
+          difficulty: point.difficulty,
+          createTime: point.createTime,
+          updateTime: point.updateTime,
+        }));
 
     console.log("转换后的课程知识点:", courseKnowledgePoints);
 
@@ -539,22 +591,22 @@ const handleCourseChange = async (courseId) => {
 
       // 分配权重给知识点
       autoGenerateForm.knowledgePointWeights = courseKnowledgePoints.map(
-        (point, index) => ({
-          pointId: point.pointId,
-          pointName: point.pointName,
-          weight: weights[index],
-        })
+          (point, index) => ({
+            pointId: point.pointId,
+            pointName: point.pointName,
+            weight: weights[index],
+          })
       );
 
       console.log(
-        "初始化的知识点权重:",
-        autoGenerateForm.knowledgePointWeights
+          "初始化的知识点权重:",
+          autoGenerateForm.knowledgePointWeights
       );
 
       // 验证权重总和
       const weightSum = autoGenerateForm.knowledgePointWeights.reduce(
-        (sum, item) => sum + item.weight,
-        0
+          (sum, item) => sum + item.weight,
+          0
       );
       console.log("权重总和:", weightSum);
     } else {
@@ -572,13 +624,13 @@ const handleCourseChange = async (courseId) => {
 const handleBatchDelete = async () => {
   try {
     await ElMessageBox.confirm(
-      `确定要删除选中的 ${selectedPaperIds.value.length} 份试卷吗？`,
-      "删除确认",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-      }
+        `确定要删除选中的 ${selectedPaperIds.value.length} 份试卷吗？`,
+        "删除确认",
+        {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning",
+        }
     );
 
     await deleteExamPaperBatch(selectedPaperIds.value);
@@ -683,17 +735,17 @@ const handleAddQuestion = async () => {
   try {
     // 获取当前试卷信息
     const currentPaper = papers.value.find(
-      (paper) => paper.paperId === currentPaperId.value
+        (paper) => paper.paperId === currentPaperId.value
     );
     if (currentPaper) {
       // 根据课程ID获取可用题目
       const questions = await getQuestionsByCourseId(currentPaper.courseId);
       // 过滤掉已添加到试卷的题目
       const existingQuestionIds = paperQuestions.value.map(
-        (item) => item.questionId
+          (item) => item.questionId
       );
       availableQuestions.value = questions.filter(
-        (question) => !existingQuestionIds.includes(question.questionId)
+          (question) => !existingQuestionIds.includes(question.questionId)
       );
     }
     addQuestionDialogVisible.value = true;
@@ -722,9 +774,9 @@ const handleConfirmAddQuestion = async () => {
         paperId: currentPaperId.value,
         questionId: question.questionId,
         questionOrder:
-          paperQuestions.value.length +
-          1 +
-          selectedQuestions.value.indexOf(question),
+            paperQuestions.value.length +
+            1 +
+            selectedQuestions.value.indexOf(question),
         questionScore: question.score || 10, // 默认分数
       });
     });
@@ -788,11 +840,11 @@ const handleGeneratePaper = async () => {
   try {
     // 转换知识点权重格式
     const knowledgePointWeights = autoGenerateForm.knowledgePointWeights.reduce(
-      (map, item) => {
-        map[item.pointId] = item.weight;
-        return map;
-      },
-      {}
+        (map, item) => {
+          map[item.pointId] = item.weight;
+          return map;
+        },
+        {}
     );
 
     // 调用自动组卷API
@@ -868,6 +920,24 @@ onMounted(async () => {
   align-items: center;
 }
 
+/* 新增：仅标题风格（不影响其它区域） */
+.title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.page-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.86);
+  line-height: 1.2;
+}
+.page-subtitle {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.2;
+}
+
 .mb-4 {
   margin-bottom: 16px;
 }
@@ -882,5 +952,16 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+.table-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.action-button {
+  min-width: 64px;
+  justify-content: center;
 }
 </style>

@@ -6,19 +6,25 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * 培养方案数据访问层，使用Spring JDBC Template实现
+ * 培养方案数据访问层，用Spring JDBC Template实现
  */
 @Repository
-public class TrainingProgramRepository {
+public class TrainingProgramRepository implements TrainingProgramRepositoryApi {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    private volatile Boolean durationColumnAvailable;
+    private volatile Boolean totalCreditColumnAvailable;
+    private volatile Boolean effectiveYearColumnAvailable;
     private volatile Boolean descriptionColumnAvailable;
+    private volatile Boolean programCodeNullable;
 
     /**
      * 查询所有培养方案
@@ -41,46 +47,81 @@ public class TrainingProgramRepository {
      * 新增培养方案
      */
     public int save(TrainingProgram program) {
-        if (isDescriptionColumnAvailable()) {
-            String sql = "INSERT INTO training_program (major_name, duration, total_credit, effective_year, description, create_time, update_time) VALUES (?, ?, ?, ?, ?, NOW(), NOW())";
-            return jdbcTemplate.update(sql,
-                    program.getMajorName(),
-                    program.getDuration(),
-                    program.getTotalCredit(),
-                    program.getEffectiveYear(),
-                    program.getDescription());
+        ensureProgramCodeColumnNullable();
+        List<ColumnMeta> columns = loadTrainingProgramColumns();
+        List<String> columnNames = new ArrayList<>();
+        List<String> valueSql = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+
+        for (ColumnMeta column : columns) {
+            if (column.isAutoIncrement()) {
+                continue;
+            }
+            if (column.isTimeColumn()) {
+                columnNames.add(column.name());
+                valueSql.add("NOW()");
+                continue;
+            }
+            ColumnValue columnValue = resolveColumnValue(program, column);
+            if (!columnValue.include()) {
+                continue;
+            }
+            columnNames.add(column.name());
+            valueSql.add("?");
+            params.add(columnValue.value());
         }
 
-        String fallbackSql = "INSERT INTO training_program (major_name, duration, total_credit, effective_year, create_time, update_time) VALUES (?, ?, ?, ?, NOW(), NOW())";
-        return jdbcTemplate.update(fallbackSql,
-                program.getMajorName(),
-                program.getDuration(),
-                program.getTotalCredit(),
-                program.getEffectiveYear());
+        String sql = "INSERT INTO training_program (" + String.join(", ", columnNames) + ") VALUES (" + String.join(", ", valueSql) + ")";
+        return jdbcTemplate.update(sql, params.toArray());
     }
 
     /**
      * 更新培养方案
      */
     public int update(TrainingProgram program) {
-        if (isDescriptionColumnAvailable()) {
-            String sql = "UPDATE training_program SET major_name = ?, duration = ?, total_credit = ?, effective_year = ?, description = ?, update_time = NOW() WHERE program_id = ?";
-            return jdbcTemplate.update(sql,
-                    program.getMajorName(),
-                    program.getDuration(),
-                    program.getTotalCredit(),
-                    program.getEffectiveYear(),
-                    program.getDescription(),
-                    program.getProgramId());
+        ensureProgramCodeColumnNullable();
+        boolean hasDuration = ensureDurationColumnAvailable();
+        boolean hasTotalCredit = ensureTotalCreditColumnAvailable();
+        boolean hasEffectiveYear = ensureEffectiveYearColumnAvailable();
+        boolean hasProgramName = isColumnAvailable("program_name");
+        boolean hasDescription = isDescriptionColumnAvailable();
+
+        List<String> updates = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+
+        updates.add("major_name = ?");
+        params.add(program.getMajorName());
+
+        if (hasProgramName) {
+            updates.add("program_name = ?");
+            params.add(program.getMajorName());
         }
 
-        String fallbackSql = "UPDATE training_program SET major_name = ?, duration = ?, total_credit = ?, effective_year = ?, update_time = NOW() WHERE program_id = ?";
-        return jdbcTemplate.update(fallbackSql,
-                program.getMajorName(),
-                program.getDuration(),
-                program.getTotalCredit(),
-                program.getEffectiveYear(),
-                program.getProgramId());
+        if (hasDuration) {
+            updates.add("duration = ?");
+            params.add(program.getDuration());
+        }
+
+        if (hasTotalCredit) {
+            updates.add("total_credit = ?");
+            params.add(program.getTotalCredit());
+        }
+
+        if (hasEffectiveYear) {
+            updates.add("effective_year = ?");
+            params.add(program.getEffectiveYear());
+        }
+
+        if (hasDescription) {
+            updates.add("description = ?");
+            params.add(program.getDescription());
+        }
+
+        updates.add("update_time = NOW()");
+        params.add(program.getProgramId());
+
+        String sql = "UPDATE training_program SET " + String.join(", ", updates) + " WHERE program_id = ?";
+        return jdbcTemplate.update(sql, params.toArray());
     }
 
     private boolean isDescriptionColumnAvailable() {
@@ -91,13 +132,237 @@ public class TrainingProgramRepository {
             if (descriptionColumnAvailable != null) {
                 return descriptionColumnAvailable;
             }
-            Integer count = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'training_program' AND column_name = 'description'",
-                    Integer.class
-            );
-            descriptionColumnAvailable = count != null && count > 0;
+            descriptionColumnAvailable = isColumnAvailable("description");
             return descriptionColumnAvailable;
         }
+    }
+
+    private boolean ensureDurationColumnAvailable() {
+        durationColumnAvailable = ensureColumnAvailable(
+                durationColumnAvailable,
+                "duration",
+                "ALTER TABLE training_program ADD COLUMN duration INT NOT NULL DEFAULT 0 COMMENT '学制（年）' AFTER major_name"
+        );
+        return durationColumnAvailable;
+    }
+
+    private boolean ensureTotalCreditColumnAvailable() {
+        totalCreditColumnAvailable = ensureColumnAvailable(
+                totalCreditColumnAvailable,
+                "total_credit",
+                "ALTER TABLE training_program ADD COLUMN total_credit DECIMAL(4,1) NOT NULL DEFAULT 0 COMMENT '总学分' AFTER duration"
+        );
+        return totalCreditColumnAvailable;
+    }
+
+    private boolean ensureEffectiveYearColumnAvailable() {
+        effectiveYearColumnAvailable = ensureColumnAvailable(
+                effectiveYearColumnAvailable,
+                "effective_year",
+                "ALTER TABLE training_program ADD COLUMN effective_year INT NOT NULL DEFAULT 0 COMMENT '生效年份' AFTER total_credit"
+        );
+        return effectiveYearColumnAvailable;
+    }
+
+    private boolean ensureColumnAvailable(Boolean cachedValue, String columnName, String alterSql) {
+        if (cachedValue != null) {
+            return cachedValue;
+        }
+        synchronized (this) {
+            if (cachedValue != null) {
+                return cachedValue;
+            }
+            boolean columnAvailable = isColumnAvailable(columnName);
+            if (columnAvailable) {
+                return true;
+            }
+            try {
+                jdbcTemplate.execute(alterSql);
+                columnAvailable = true;
+            } catch (Exception ignored) {
+                columnAvailable = isColumnAvailable(columnName);
+            }
+            return columnAvailable;
+        }
+    }
+
+    private List<ColumnMeta> loadTrainingProgramColumns() {
+        String sql = "SELECT COLUMN_NAME, IS_NULLABLE, COLUMN_DEFAULT, EXTRA, DATA_TYPE FROM information_schema.columns "
+                + "WHERE table_schema = DATABASE() AND table_name = 'training_program' ORDER BY ORDINAL_POSITION";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new ColumnMeta(
+                rs.getString("COLUMN_NAME"),
+                rs.getString("DATA_TYPE"),
+                rs.getString("IS_NULLABLE"),
+                rs.getString("COLUMN_DEFAULT"),
+                rs.getString("EXTRA")
+        ));
+    }
+
+    private ColumnValue resolveColumnValue(TrainingProgram program, ColumnMeta column) {
+        String name = column.name();
+        Object value = null;
+        boolean hasValue = false;
+
+        switch (name) {
+            case "major_name" -> {
+                value = program.getMajorName();
+                hasValue = true;
+            }
+            case "program_name" -> {
+                value = program.getMajorName();
+                hasValue = true;
+            }
+            case "program_code" -> {
+                value = program.getMajorName();
+                hasValue = true;
+            }
+            case "duration" -> {
+                value = program.getDuration();
+                hasValue = value != null;
+            }
+            case "total_credit" -> {
+                value = program.getTotalCredit();
+                hasValue = value != null;
+            }
+            case "effective_year" -> {
+                value = program.getEffectiveYear();
+                hasValue = value != null;
+            }
+            case "description" -> {
+                value = program.getDescription();
+                hasValue = value != null;
+            }
+            default -> {
+            }
+        }
+
+        if (hasValue) {
+            return ColumnValue.include(value);
+        }
+
+        if (column.isRequiredWithoutDefault()) {
+            return ColumnValue.include(defaultValueFor(column));
+        }
+
+        return ColumnValue.skip();
+    }
+
+    private Object defaultValueFor(ColumnMeta column) {
+        String dataType = column.dataType();
+        if (dataType == null) {
+            return "";
+        }
+        if (isStringType(dataType)) {
+            return "";
+        }
+        if (isNumericType(dataType)) {
+            return 0;
+        }
+        if (isDateTimeType(dataType)) {
+            return LocalDateTime.now();
+        }
+        return "";
+    }
+
+    private boolean isStringType(String dataType) {
+        return switch (dataType) {
+            case "varchar", "char", "text", "longtext", "mediumtext", "tinytext" -> true;
+            default -> false;
+        };
+    }
+
+    private boolean isNumericType(String dataType) {
+        return switch (dataType) {
+            case "int", "bigint", "smallint", "tinyint", "decimal", "double", "float" -> true;
+            default -> false;
+        };
+    }
+
+    private boolean isDateTimeType(String dataType) {
+        return switch (dataType) {
+            case "date", "datetime", "timestamp" -> true;
+            default -> false;
+        };
+    }
+
+    private record ColumnMeta(String name, String dataType, String nullable, String columnDefault, String extra) {
+        boolean isAutoIncrement() {
+            return extra != null && extra.contains("auto_increment");
+        }
+
+        boolean isRequiredWithoutDefault() {
+            return !"YES".equalsIgnoreCase(nullable) && columnDefault == null && !isAutoIncrement();
+        }
+
+        boolean isTimeColumn() {
+            return "create_time".equalsIgnoreCase(name) || "update_time".equalsIgnoreCase(name);
+        }
+    }
+
+    private record ColumnValue(boolean include, Object value) {
+        static ColumnValue include(Object value) {
+            return new ColumnValue(true, value);
+        }
+
+        static ColumnValue skip() {
+            return new ColumnValue(false, null);
+        }
+    }
+
+    private void ensureProgramCodeColumnNullable() {
+        if (programCodeNullable != null && programCodeNullable) {
+            return;
+        }
+        synchronized (this) {
+            if (programCodeNullable != null && programCodeNullable) {
+                return;
+            }
+            if (!isColumnAvailable("program_code")) {
+                programCodeNullable = false;
+                return;
+            }
+            if (isColumnNullable("program_code")) {
+                programCodeNullable = true;
+                return;
+            }
+            String columnType = getColumnType("program_code");
+            if (columnType == null) {
+                programCodeNullable = false;
+                return;
+            }
+            try {
+                jdbcTemplate.execute("ALTER TABLE training_program MODIFY COLUMN program_code " + columnType + " NULL");
+                programCodeNullable = true;
+            } catch (Exception ignored) {
+                programCodeNullable = isColumnNullable("program_code");
+            }
+        }
+    }
+
+    private boolean isColumnNullable(String columnName) {
+        String nullable = jdbcTemplate.queryForObject(
+                "SELECT IS_NULLABLE FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'training_program' AND column_name = ?",
+                String.class,
+                columnName
+        );
+        return "YES".equalsIgnoreCase(nullable);
+    }
+
+    private String getColumnType(String columnName) {
+        return jdbcTemplate.queryForObject(
+                "SELECT COLUMN_TYPE FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'training_program' AND column_name = ?",
+                String.class,
+                columnName
+        );
+    }
+
+    private boolean isColumnAvailable(String columnName) {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'training_program' AND column_name = ?",
+                Integer.class,
+                columnName
+        );
+        return count != null && count > 0;
     }
 
     /**

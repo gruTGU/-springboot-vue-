@@ -3,7 +3,12 @@
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>实践项目管理</span>
+          <!-- 仅改标题：标题 + 副标题（其余不动） -->
+          <div class="title-wrap">
+            <div class="page-title">实践项目管理</div>
+            <div class="page-subtitle">发布与维护实践项目，支持新增、编辑与截止时间管理</div>
+          </div>
+
           <el-button type="primary" @click="openDialog">
             <el-icon><Plus /></el-icon> 添加项目
           </el-button>
@@ -13,16 +18,35 @@
       <el-table :data="projects" style="width: 100%">
         <el-table-column prop="projectId" label="项目ID" width="100" />
         <el-table-column prop="title" label="项目标题" min-width="200" />
-        <el-table-column prop="description" label="项目描述" min-width="300" show-overflow-tooltip />
+        <el-table-column
+            prop="description"
+            label="项目描述"
+            min-width="300"
+            show-overflow-tooltip
+        />
         <el-table-column prop="publisher" label="发布者" width="150" />
-        <el-table-column prop="createTime" label="创建时间" width="200" :formatter="formatDateTime" />
-        <el-table-column prop="deadline" label="截止时间" width="200" :formatter="formatDateTime" />
+        <el-table-column
+            prop="createTime"
+            label="创建时间"
+            width="200"
+            :formatter="formatDateTime"
+        />
+        <el-table-column
+            prop="deadline"
+            label="截止时间"
+            width="200"
+            :formatter="formatDateTime"
+        />
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="scope">
             <el-button type="primary" size="small" @click="handleEdit(scope.row)">
               编辑
             </el-button>
-            <el-button type="danger" size="small" @click="handleDelete(scope.row.projectId)">
+            <el-button
+                type="danger"
+                size="small"
+                @click="handleDelete(scope.row.projectId)"
+            >
               删除
             </el-button>
           </template>
@@ -30,21 +54,17 @@
       </el-table>
 
       <!-- 项目表单对话框 -->
-      <el-dialog
-        v-model="dialogVisible"
-        title="项目表单"
-        width="600px"
-      >
+      <el-dialog v-model="dialogVisible" title="项目表单" width="600px">
         <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
           <el-form-item label="项目标题" prop="title">
             <el-input v-model="form.title" placeholder="请输入项目标题" />
           </el-form-item>
           <el-form-item label="项目描述" prop="description">
             <el-input
-              v-model="form.description"
-              type="textarea"
-              rows="4"
-              placeholder="请输入项目描述"
+                v-model="form.description"
+                type="textarea"
+                rows="4"
+                placeholder="请输入项目描述"
             />
           </el-form-item>
           <el-form-item label="发布者" prop="publisher">
@@ -52,10 +72,10 @@
           </el-form-item>
           <el-form-item label="截止时间" prop="deadline">
             <el-date-picker
-              v-model="form.deadline"
-              type="datetime"
-              placeholder="选择截止时间"
-              style="width: 100%"
+                v-model="form.deadline"
+                type="datetime"
+                placeholder="选择截止时间"
+                style="width: 100%"
             />
           </el-form-item>
         </el-form>
@@ -139,16 +159,20 @@ const handleDelete = (projectId) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    deletePracticeProject(projectId).then(() => {
-      ElMessage.success('删除成功')
-      loadProjects()
-    }).catch(() => {
-      ElMessage.error('删除失败')
-    })
-  }).catch(() => {
-    // 取消删除
   })
+      .then(() => {
+        deletePracticeProject(projectId)
+            .then(() => {
+              ElMessage.success('删除成功')
+              loadProjects()
+            })
+            .catch(() => {
+              ElMessage.error('删除失败')
+            })
+      })
+      .catch(() => {
+        // 取消删除
+      })
 }
 
 // 提交表单
@@ -157,22 +181,26 @@ const submitForm = () => {
     if (valid) {
       if (form.value.projectId) {
         // 更新项目
-        updatePracticeProject(form.value.projectId, form.value).then(() => {
-          ElMessage.success('更新成功')
-          dialogVisible.value = false
-          loadProjects()
-        }).catch(() => {
-          ElMessage.error('更新失败')
-        })
+        updatePracticeProject(form.value.projectId, form.value)
+            .then(() => {
+              ElMessage.success('更新成功')
+              dialogVisible.value = false
+              loadProjects()
+            })
+            .catch(() => {
+              ElMessage.error('更新失败')
+            })
       } else {
         // 新增项目
-        addPracticeProject(form.value).then(() => {
-          ElMessage.success('添加成功')
-          dialogVisible.value = false
-          loadProjects()
-        }).catch(() => {
-          ElMessage.error('添加失败')
-        })
+        addPracticeProject(form.value)
+            .then(() => {
+              ElMessage.success('添加成功')
+              dialogVisible.value = false
+              loadProjects()
+            })
+            .catch(() => {
+              ElMessage.error('添加失败')
+            })
       }
     }
   })
@@ -196,6 +224,24 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+/* 新增：仅标题风格（不影响其它区域） */
+.title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.page-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.86);
+  line-height: 1.2;
+}
+.page-subtitle {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.2;
 }
 
 .dialog-footer {

@@ -1,109 +1,150 @@
 <template>
-  <div class="app-container">
+  <div class="app-page">
+    <div class="bg-decoration" aria-hidden="true"></div>
+
     <!-- 只有非登录页面才显示完整布局 -->
     <template v-if="$route.path !== '/login'">
-      <el-container>
+      <el-container class="shell">
+        <!-- 顶部栏 -->
         <el-header class="app-header">
-          <h1>本科专业管理系统</h1>
-          <div class="user-info" v-if="isLoggedIn">
-            <span class="user-name">{{
-              userInfo.realName || userInfo.username
-            }}</span>
-            <el-button type="danger" size="small" @click="handleLogout"
-              >登出</el-button
-            >
+          <div class="brand">
+            <div class="brand-badge">PM</div>
+            <div class="brand-text">
+              <div class="brand-title">本科专业管理系统</div>
+              <div class="brand-subtitle">Professional Management Portal</div>
+            </div>
+          </div>
+
+          <div class="header-right">
+            <div class="user-info" v-if="isLoggedIn">
+              <div class="user-chip">
+                <span class="user-name">{{ userInfo.realName || userInfo.username }}</span>
+                <span class="user-role" v-if="userInfo.username === 'admin'">管理员</span>
+              </div>
+
+              <el-button
+                  class="logout-btn"
+                  type="danger"
+                  size="small"
+                  @click="handleLogout"
+              >
+                登出
+              </el-button>
+            </div>
           </div>
         </el-header>
-        <el-container>
-          <el-aside width="200px" class="app-aside">
-            <el-menu
-              :default-active="activeMenu"
-              class="el-menu-vertical-demo"
-              @select="handleMenuSelect"
-            >
-              <el-menu-item index="/courses" v-if="canAccessMenu('/courses')">
-                <el-icon><Document /></el-icon>
-                <span>课程管理</span>
-              </el-menu-item>
-              <el-menu-item
-                index="/knowledge-points"
-                v-if="canAccessMenu('/knowledge-points')"
+
+        <el-container class="body">
+          <!-- 侧边栏 -->
+          <el-aside width="220px" class="app-aside">
+            <div class="aside-inner">
+              <el-menu
+                  :default-active="activeMenu"
+                  class="app-menu"
+                  @select="handleMenuSelect"
+                  router
               >
-                <el-icon><Collection /></el-icon>
-                <span>知识点管理</span>
-              </el-menu-item>
-              <el-menu-item
-                index="/question-bank"
-                v-if="canAccessMenu('/question-bank')"
-              >
-                <el-icon><EditPen /></el-icon>
-                <span>题库管理</span>
-              </el-menu-item>
-              <el-menu-item
-                index="/exam-papers"
-                v-if="canAccessMenu('/exam-papers')"
-              >
-                <el-icon><Notebook /></el-icon>
-                <span>试卷管理</span>
-              </el-menu-item>
-              <el-menu-item
-                index="/training-programs"
-                v-if="canAccessMenu('/training-programs')"
-              >
-                <el-icon><List /></el-icon>
-                <span>培养方案管理</span>
-              </el-menu-item>
-              <el-menu-item
-                index="/statistics"
-                v-if="canAccessMenu('/statistics')"
-              >
-                <el-icon><DataAnalysis /></el-icon>
-                <span>统计分析</span>
-              </el-menu-item>
-              <el-menu-item
-                index="/practice-projects"
-                v-if="canAccessMenu('/practice-projects')"
-              >
-                <el-icon><Operation /></el-icon>
-                <span>实践项目</span>
-              </el-menu-item>
-              <el-menu-item
-                index="/semester-management"
-                v-if="canAccessMenu('/semester-management')"
-              >
-                <el-icon><Calendar /></el-icon>
-                <span>学期管理</span>
-              </el-menu-item>
-              <el-menu-item
-                index="/semester-schedule"
-                v-if="canAccessMenu('/semester-schedule')"
-              >
-                <el-icon><Notebook /></el-icon>
-                <span>学期课表</span>
-              </el-menu-item>
-              <el-menu-item index="/users" v-if="canAccessMenu('/users')">
-                <el-icon><User /></el-icon>
-                <span>用户管理</span>
-              </el-menu-item>
-              <el-menu-item index="/roles" v-if="canAccessMenu('/roles')">
-                <el-icon><Key /></el-icon>
-                <span>角色管理</span>
-              </el-menu-item>
-              <el-menu-item
-                index="/permissions"
-                v-if="canAccessMenu('/permissions')"
-              >
-                <el-icon><Lock /></el-icon>
-                <span>权限管理</span>
-              </el-menu-item>
-            </el-menu>
+                <el-menu-item index="/courses" v-if="canAccessMenu('/courses')">
+                  <el-icon><Document /></el-icon>
+                  <span>课程管理</span>
+                </el-menu-item>
+
+                <el-menu-item
+                    index="/knowledge-points"
+                    v-if="canAccessMenu('/knowledge-points')"
+                >
+                  <el-icon><Collection /></el-icon>
+                  <span>知识点管理</span>
+                </el-menu-item>
+
+                <el-menu-item
+                    index="/question-bank"
+                    v-if="canAccessMenu('/question-bank')"
+                >
+                  <el-icon><EditPen /></el-icon>
+                  <span>题库管理</span>
+                </el-menu-item>
+
+                <el-menu-item
+                    index="/exam-papers"
+                    v-if="canAccessMenu('/exam-papers')"
+                >
+                  <el-icon><Notebook /></el-icon>
+                  <span>试卷管理</span>
+                </el-menu-item>
+
+                <el-menu-item
+                    index="/training-programs"
+                    v-if="canAccessMenu('/training-programs')"
+                >
+                  <el-icon><List /></el-icon>
+                  <span>培养方案管理</span>
+                </el-menu-item>
+
+                <el-menu-item index="/statistics" v-if="canAccessMenu('/statistics')">
+                  <el-icon><DataAnalysis /></el-icon>
+                  <span>统计分析</span>
+                </el-menu-item>
+
+                <el-menu-item
+                    index="/practice-projects"
+                    v-if="canAccessMenu('/practice-projects')"
+                >
+                  <el-icon><Operation /></el-icon>
+                  <span>实践项目</span>
+                </el-menu-item>
+
+                <el-menu-item
+                    index="/semester-management"
+                    v-if="canAccessMenu('/semester-management')"
+                >
+                  <el-icon><Calendar /></el-icon>
+                  <span>学期管理</span>
+                </el-menu-item>
+
+                <el-menu-item
+                    index="/semester-schedule"
+                    v-if="canAccessMenu('/semester-schedule')"
+                >
+                  <el-icon><Notebook /></el-icon>
+                  <span>学期课表</span>
+                </el-menu-item>
+
+                <el-menu-item index="/users" v-if="canAccessMenu('/users')">
+                  <el-icon><User /></el-icon>
+                  <span>用户管理</span>
+                </el-menu-item>
+
+                <el-menu-item index="/roles" v-if="canAccessMenu('/roles')">
+                  <el-icon><Key /></el-icon>
+                  <span>角色管理</span>
+                </el-menu-item>
+
+                <el-menu-item
+                    index="/permissions"
+                    v-if="canAccessMenu('/permissions')"
+                >
+                  <el-icon><Lock /></el-icon>
+                  <span>权限管理</span>
+                </el-menu-item>
+              </el-menu>
+
+              <div class="aside-footer muted">
+                <span>© {{ new Date().getFullYear() }}</span>
+              </div>
+            </div>
           </el-aside>
+
+          <!-- 主体 -->
           <el-main class="app-main">
-            <router-view />
+            <div class="main-inner">
+              <router-view />
+            </div>
           </el-main>
         </el-container>
       </el-container>
     </template>
+
     <!-- 登录页面直接显示路由视图 -->
     <template v-else>
       <router-view />
@@ -137,7 +178,7 @@ const activeMenu = ref("/courses");
 const userInfo = ref({ username: "", realName: "" });
 const permissions = ref([]);
 
-// 计算属性：判断是否已登录
+// 是否已登录
 const isLoggedIn = ref(false);
 
 // 权限配置：每个菜单需要的权限
@@ -156,13 +197,12 @@ const menuPermissions = {
   "/permissions": ["permission:list"],
 };
 
-// 从localStorage获取用户信息和权限的函数
+// 从localStorage获取用户信息和权限
 const getUserInfoAndPermissions = () => {
   const token = localStorage.getItem("token");
   const userStr = localStorage.getItem("user");
   const permissionsStr = localStorage.getItem("permissions");
 
-  // 判断是否已登录
   isLoggedIn.value = !!(token && userStr);
 
   if (userStr && isLoggedIn.value) {
@@ -184,61 +224,44 @@ const getUserInfoAndPermissions = () => {
 
 // 检查用户是否有访问菜单的权限
 const canAccessMenu = (menuPath) => {
-  // 获取菜单需要的权限
   const requiredPermissions = menuPermissions[menuPath] || [];
+  if (requiredPermissions.length === 0) return true;
 
-  // 如果不需要权限，直接返回true
-  if (requiredPermissions.length === 0) {
-    return true;
-  }
-
-  // 检查用户是否有任一所需权限
-  // 处理权限数据可能的不同结构
   const permissionCodes = permissions.value
-    .map((p) => {
-      // 如果是字符串，直接返回；如果是对象，返回permissionCode属性
-      return typeof p === "string" ? p : p.permissionCode;
-    })
-    .filter(Boolean); // 过滤掉undefined和null
+      .map((p) => (typeof p === "string" ? p : p.permissionCode))
+      .filter(Boolean);
 
-  // 管理员用户直接返回true
-  if (userInfo.value.username === "admin") {
-    return true;
-  }
+  // 管理员直接放行
+  if (userInfo.value.username === "admin") return true;
 
   return requiredPermissions.some((perm) => permissionCodes.includes(perm));
 };
 
-// 登出功能
+// 登出
 const handleLogout = () => {
-  // 清除localStorage中的信息
   localStorage.removeItem("token");
   localStorage.removeItem("user");
   localStorage.removeItem("roles");
   localStorage.removeItem("permissions");
 
-  // 同时更新响应式变量的值，确保用户界面立即更新
   userInfo.value = { username: "", realName: "" };
   permissions.value = [];
 
-  // 跳转到登录页
   ElMessage.success("登出成功");
   router.push("/login");
 };
 
-// 初始化用户信息和权限
 onMounted(() => {
   activeMenu.value = route.path;
   getUserInfoAndPermissions();
 });
 
-// 监听路由变化，当路由变化时重新获取用户信息和权限
 watch(
-  () => route.path,
-  () => {
-    activeMenu.value = route.path;
-    getUserInfoAndPermissions();
-  }
+    () => route.path,
+    () => {
+      activeMenu.value = route.path;
+      getUserInfoAndPermissions();
+    }
 );
 
 const handleMenuSelect = (key) => {
@@ -247,20 +270,84 @@ const handleMenuSelect = (key) => {
 </script>
 
 <style scoped>
-.app-container {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+/* ====== 背景与整体 ====== */
+.app-page {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(1200px 600px at 20% 10%, rgba(64, 158, 255, 0.16), transparent 60%),
+  radial-gradient(900px 500px at 85% 20%, rgba(103, 194, 58, 0.12), transparent 55%),
+  radial-gradient(700px 500px at 70% 90%, rgba(230, 162, 60, 0.10), transparent 55%),
+  linear-gradient(180deg, #f6f8fb 0%, #eef2f7 100%);
 }
 
+.bg-decoration {
+  position: absolute;
+  inset: -40px;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.045) 1px, transparent 1px);
+  background-size: 18px 18px;
+  mask-image: radial-gradient(circle at 50% 30%, black 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* ====== 外壳 ====== */
+.shell {
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* ====== Header ====== */
 .app-header {
-  background-color: #409eff;
-  color: white;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0 18px;
+  margin: 14px 14px 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, #409eff 0%, #6aa8ff 55%, #67c23a 120%);
+  box-shadow: 0 10px 18px rgba(64, 158, 255, 0.22);
+  user-select: none;
+}
+
+.brand-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.86);
+  line-height: 1.2;
+}
+
+.brand-subtitle {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 2px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .user-info {
@@ -269,43 +356,135 @@ const handleMenuSelect = (key) => {
   gap: 10px;
 }
 
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
 .user-name {
-  font-weight: 500;
-  margin-right: 10px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.75);
 }
 
-.app-header h1 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 500;
+.user-role {
+  font-size: 12px;
+  color: #409eff;
+  background: rgba(64, 158, 255, 0.12);
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(64, 158, 255, 0.18);
 }
 
+.logout-btn {
+  border-radius: 10px;
+}
+
+/* ====== Body ====== */
+.body {
+  margin: 0 14px 14px;
+  gap: 12px;
+}
+
+/* ====== Aside ====== */
 .app-aside {
-  background-color: #304156;
-  color: white;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(16, 24, 40, 0.90);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
 }
 
-.el-menu-vertical-demo {
-  height: 100%;
+.aside-inner {
+  height: calc(100vh - 64px - 14px - 14px - 10px); /* 适配 header + 外边距 */
+  display: flex;
+  flex-direction: column;
+  padding: 10px 8px;
+}
+
+.app-menu {
+  flex: 1;
   border-right: none;
-  background-color: #304156;
+  background: transparent;
 }
 
-.el-menu-vertical-demo :deep(.el-menu-item) {
-  color: white;
+/* 菜单项基础 */
+.app-menu :deep(.el-menu-item) {
+  height: 44px;
+  line-height: 44px;
+  border-radius: 12px;
+  margin: 4px 6px;
+  color: rgba(255, 255, 255, 0.86);
+  transition: background 0.16s ease, color 0.16s ease, transform 0.16s ease;
 }
 
-.el-menu-vertical-demo :deep(.el-menu-item.is-active) {
-  background-color: #409eff;
+/* 图标对齐 */
+.app-menu :deep(.el-menu-item .el-icon) {
+  margin-right: 10px;
+  font-size: 16px;
 }
 
-.el-menu-vertical-demo :deep(.el-menu-item:hover) {
-  background-color: #1890ff;
+/* hover */
+.app-menu :deep(.el-menu-item:hover) {
+  background: rgba(255, 255, 255, 0.10);
+  transform: translateX(1px);
 }
 
+/* active */
+.app-menu :deep(.el-menu-item.is-active) {
+  background: linear-gradient(135deg, rgba(64, 158, 255, 0.95), rgba(106, 168, 255, 0.92));
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(64, 158, 255, 0.22);
+}
+
+/* menu 自身背景透明 */
+.app-menu :deep(.el-menu) {
+  background: transparent;
+}
+
+/* aside footer */
+.aside-footer {
+  padding: 8px 12px;
+  margin: 6px 6px 2px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+  font-size: 12px;
+}
+
+.muted {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* ====== Main ====== */
 .app-main {
-  padding: 20px;
-  overflow-y: auto;
-  background-color: #f5f7fa;
+  padding: 0;
+  background: transparent;
+}
+
+.main-inner {
+  height: calc(100vh - 64px - 14px - 14px - 10px);
+  overflow: auto;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.74);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* 小屏优化 */
+@media (max-width: 980px) {
+  .app-aside {
+    width: 200px !important;
+  }
+  .brand-subtitle {
+    display: none;
+  }
 }
 </style>

@@ -3,7 +3,12 @@
     <el-card class="mb-4">
       <template #header>
         <div class="card-header">
-          <span>学期管理</span>
+          <!-- 仅改标题：标题 + 副标题（其余不动） -->
+          <div class="title-wrap">
+            <div class="page-title">学期管理</div>
+            <div class="page-subtitle">维护学期起止日期与当前学期标记，支持自动生成学期信息</div>
+          </div>
+
           <div class="header-actions">
             <el-button type="primary" @click="handleAddSemester">
               <el-icon><Plus /></el-icon>
@@ -14,10 +19,10 @@
       </template>
 
       <el-table
-        :data="semesters"
-        border
-        stripe
-        @selection-change="handleSelectionChange"
+          :data="semesters"
+          border
+          stripe
+          @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" />
         <el-table-column prop="semesterId" label="学期ID" width="80" />
@@ -32,37 +37,41 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="200" />
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="330" fixed="right" align="center">
           <template #default="scope">
-            <el-button
-              type="primary"
-              size="small"
-              @click="handleEditSemester(scope.row)"
-            >
-              <el-icon><Edit /></el-icon>
-              编辑
-            </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              @click="handleDeleteSemester(scope.row.semesterId)"
-            >
-              <el-icon><Delete /></el-icon>
-              删除
-            </el-button>
+            <el-space :size="6" wrap="nowrap">
+              <el-button
+                  type="primary"
+                  size="small"
+                  @click="handleEditSemester(scope.row)"
+              >
+                <el-icon><Edit /></el-icon>
+                编辑
+              </el-button>
+
+              <el-button
+                  type="danger"
+                  size="small"
+                  @click="handleDeleteSemester(scope.row.semesterId)"
+              >
+                <el-icon><Delete /></el-icon>
+                删除
+              </el-button>
+            </el-space>
           </template>
         </el-table-column>
+
       </el-table>
 
       <div class="pagination mt-4">
         <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50, 100]"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
         />
       </div>
     </el-card>
@@ -73,10 +82,10 @@
         <el-form-item label="学年" required>
           <el-select v-model="academicYear" placeholder="请选择学年">
             <el-option
-              v-for="year in availableYears"
-              :key="year"
-              :label="year + '-' + (parseInt(year) + 1)"
-              :value="year"
+                v-for="year in availableYears"
+                :key="year"
+                :label="year + '-' + (parseInt(year) + 1)"
+                :value="year"
             />
           </el-select>
         </el-form-item>
@@ -88,27 +97,27 @@
         </el-form-item>
         <el-form-item label="学期名称" required>
           <el-input
-            v-model="semesterForm.semesterName"
-            placeholder="学期名称将自动生成"
-            readonly
+              v-model="semesterForm.semesterName"
+              placeholder="学期名称将自动生成"
+              readonly
           />
         </el-form-item>
         <el-form-item label="开始日期" required>
           <el-date-picker
-            v-model="semesterForm.startDate"
-            type="date"
-            placeholder="开始日期将自动生成"
-            style="width: 100%"
-            value-format="YYYY-MM-DD"
+              v-model="semesterForm.startDate"
+              type="date"
+              placeholder="开始日期将自动生成"
+              style="width: 100%"
+              value-format="YYYY-MM-DD"
           />
         </el-form-item>
         <el-form-item label="结束日期" required>
           <el-date-picker
-            v-model="semesterForm.endDate"
-            type="date"
-            placeholder="结束日期将自动生成"
-            style="width: 100%"
-            value-format="YYYY-MM-DD"
+              v-model="semesterForm.endDate"
+              type="date"
+              placeholder="结束日期将自动生成"
+              style="width: 100%"
+              value-format="YYYY-MM-DD"
           />
         </el-form-item>
         <el-form-item label="是否当前学期">
@@ -323,13 +332,13 @@ const handleBatchDelete = async () => {
 
   try {
     await ElMessageBox.confirm(
-      `确定要删除选中的 ${selectedSemesterIds.value.length} 个学期吗？`,
-      "删除确认",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-      }
+        `确定要删除选中的 ${selectedSemesterIds.value.length} 个学期吗？`,
+        "删除确认",
+        {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning",
+        }
     );
 
     await deleteBatchSemesters(selectedSemesterIds.value);
@@ -359,6 +368,24 @@ onMounted(async () => {
 .header-actions {
   display: flex;
   align-items: center;
+}
+
+/* 新增：仅标题风格（不影响其它区域） */
+.title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.page-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.86);
+  line-height: 1.2;
+}
+.page-subtitle {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.2;
 }
 
 .mb-4 {

@@ -3,12 +3,17 @@
     <el-card class="mb-4">
       <template #header>
         <div class="card-header">
-          <span>培养方案列表</span>
+          <!-- 仅改标题：标题 + 副标题（其余不动） -->
+          <div class="title-wrap">
+            <div class="page-title">培养方案列表</div>
+            <div class="page-subtitle">维护专业培养方案信息，并支持课程与学期安排管理</div>
+          </div>
+
           <div class="header-actions">
             <el-button
-              type="danger"
-              @click="handleBatchDelete"
-              :disabled="selectedProgramIds.length === 0"
+                type="danger"
+                @click="handleBatchDelete"
+                :disabled="selectedProgramIds.length === 0"
             >
               <el-icon><Delete /></el-icon>
               批量删除
@@ -22,58 +27,77 @@
       </template>
 
       <el-table
-        :data="programs"
-        border
-        stripe
-        @selection-change="handleSelectionChange"
+          :data="programs"
+          border
+          stripe
+          @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" />
         <el-table-column prop="programId" label="方案ID" width="80" />
         <el-table-column prop="majorName" label="专业名称" width="200" />
         <el-table-column prop="duration" label="学制" width="80" />
         <el-table-column prop="totalCredit" label="总学分" width="80" />
-        <el-table-column prop="effectiveYear" label="生效年份" width="120" />
-        <el-table-column prop="description" label="培养方案描述" min-width="200" />
+        <el-table-column prop="effectiveYear" label="生效年份" width="80" />
+        <el-table-column prop="description" label="培养方案描述" min-width="100" />
         <el-table-column prop="createTime" label="创建时间" width="180" />
         <el-table-column label="操作" width="250" fixed="right">
           <template #default="scope">
-            <el-button
-              type="primary"
-              size="small"
-              @click="handleEditProgram(scope.row)"
-            >
-              <el-icon><Edit /></el-icon>
-              编辑
-            </el-button>
-            <el-button
-              type="success"
-              size="small"
-              @click="handleManageCourses(scope.row)"
-            >
-              <el-icon><Menu /></el-icon>
-              管理课程
-            </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              @click="handleDeleteProgram(scope.row.programId)"
-            >
-              <el-icon><Delete /></el-icon>
-              删除
-            </el-button>
+            <div class="table-action-buttons">
+              <el-button class="action-button" type="primary" size="small" @click="handleEditProgram(scope.row)">
+                <el-icon><Edit /></el-icon>
+                编辑
+              </el-button>
+              <el-button class="action-button" type="success" size="small" @click="handleManageCourses(scope.row)">
+                <el-icon><Menu /></el-icon>
+                管理课程
+              </el-button>
+              <el-button class="action-button" type="danger" size="small" @click="handleDeleteProgram(scope.row.programId)">
+                <el-icon><Delete /></el-icon>
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
+
+        <!--        <el-table-column label="操作" width="250" fixed="right">-->
+        <!--          <template #default="scope">-->
+        <!--            <el-button-->
+        <!--              type="primary"-->
+        <!--              size="small"-->
+        <!--              @click="handleEditProgram(scope.row)"-->
+        <!--            >-->
+        <!--              <el-icon><Edit /></el-icon>-->
+        <!--              编辑-->
+        <!--            </el-button>-->
+        <!--            <el-button-->
+        <!--              type="success"-->
+        <!--              size="small"-->
+        <!--              @click="handleManageCourses(scope.row)"-->
+        <!--            >-->
+        <!--              <el-icon><Menu /></el-icon>-->
+        <!--              管理课程-->
+        <!--            </el-button>-->
+        <!--            <el-button-->
+        <!--              type="danger"-->
+        <!--              size="small"-->
+        <!--              @click="handleDeleteProgram(scope.row.programId)"-->
+        <!--            >-->
+        <!--              <el-icon><Delete /></el-icon>-->
+        <!--              删除-->
+        <!--            </el-button>-->
+        <!--          </template>-->
+        <!--        </el-table-column>-->
       </el-table>
 
       <div class="pagination mt-4">
         <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50, 100]"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
         />
       </div>
     </el-card>
@@ -83,43 +107,43 @@
       <el-form :model="programForm" label-width="120px">
         <el-form-item label="专业名称" required>
           <el-input
-            v-model="programForm.majorName"
-            placeholder="请输入专业名称"
+              v-model="programForm.majorName"
+              placeholder="请输入专业名称"
           />
         </el-form-item>
         <el-form-item label="学制" required>
           <el-input
-            v-model.number="programForm.duration"
-            placeholder="请输入学制（年）"
-            type="number"
-            min="1"
-            max="8"
+              v-model.number="programForm.duration"
+              placeholder="请输入学制（年）"
+              type="number"
+              min="1"
+              max="8"
           />
         </el-form-item>
         <el-form-item label="总学分" required>
           <el-input
-            v-model.number="programForm.totalCredit"
-            placeholder="请输入总学分要求"
-            type="number"
-            step="0.5"
-            min="0"
+              v-model.number="programForm.totalCredit"
+              placeholder="请输入总学分要求"
+              type="number"
+              step="0.5"
+              min="0"
           />
         </el-form-item>
         <el-form-item label="生效年份" required>
           <el-input
-            v-model.number="programForm.effectiveYear"
-            placeholder="请输入生效年份"
-            type="number"
-            min="2000"
-            max="2100"
+              v-model.number="programForm.effectiveYear"
+              placeholder="请输入生效年份"
+              type="number"
+              min="2000"
+              max="2100"
           />
         </el-form-item>
         <el-form-item label="培养方案描述">
           <el-input
-            v-model="programForm.description"
-            placeholder="请输入培养方案描述"
-            type="textarea"
-            rows="3"
+              v-model="programForm.description"
+              placeholder="请输入培养方案描述"
+              type="textarea"
+              rows="3"
           />
         </el-form-item>
       </el-form>
@@ -133,9 +157,9 @@
 
     <!-- 课程管理对话框 -->
     <el-dialog
-      v-model="courseDialogVisible"
-      :title="`${currentProgram.majorName} - 课程管理`"
-      width="900px"
+        v-model="courseDialogVisible"
+        :title="`${currentProgram.majorName} - 课程管理`"
+        width="900px"
     >
       <div class="course-management-container">
         <!-- 课程列表 -->
@@ -157,26 +181,56 @@
             <el-table-column prop="totalHours" label="总学时" width="80" />
             <el-table-column prop="courseType" label="课程类型" width="120" />
             <el-table-column prop="courseNature" label="课程性质" width="120" />
-            <el-table-column label="操作" width="150" fixed="right">
+            <el-table-column label="操作" width="110" fixed="right" align="center">
               <template #default="scope">
-                <el-button
-                  type="primary"
-                  size="small"
-                  @click="handleEditCourse(scope.row)"
-                >
-                  <el-icon><Edit /></el-icon>
-                  编辑
-                </el-button>
-                <el-button
-                  type="danger"
-                  size="small"
-                  @click="handleDeleteCourse(scope.row.courseId)"
-                >
-                  <el-icon><Delete /></el-icon>
-                  删除
-                </el-button>
+                <el-space :size="6">
+                  <el-tooltip content="编辑" placement="top">
+                    <el-button
+                        v-if="hasPermission?.('course:edit') ?? true"
+                        circle
+                        type="primary"
+                        size="small"
+                        @click="handleEditCourse(scope.row)"
+                    >
+                      <el-icon><Edit /></el-icon>
+                    </el-button>
+                  </el-tooltip>
+
+                  <el-tooltip content="删除" placement="top">
+                    <el-button
+                        v-if="hasPermission?.('course:delete') ?? true"
+                        circle
+                        type="danger"
+                        size="small"
+                        @click="handleDeleteCourse(scope.row.courseId)"
+                    >
+                      <el-icon><Delete /></el-icon>
+                    </el-button>
+                  </el-tooltip>
+                </el-space>
               </template>
             </el-table-column>
+
+            <!--            <el-table-column label="操作" width="150" fixed="right">-->
+            <!--              <template #default="scope">-->
+            <!--                <el-button-->
+            <!--                  type="primary"-->
+            <!--                  size="small"-->
+            <!--                  @click="handleEditCourse(scope.row)"-->
+            <!--                >-->
+            <!--                  <el-icon><Edit /></el-icon>-->
+            <!--                  编辑-->
+            <!--                </el-button>-->
+            <!--                <el-button-->
+            <!--                  type="danger"-->
+            <!--                  size="small"-->
+            <!--                  @click="handleDeleteCourse(scope.row.courseId)"-->
+            <!--                >-->
+            <!--                  <el-icon><Delete /></el-icon>-->
+            <!--                  删除-->
+            <!--                </el-button>-->
+            <!--              </template>-->
+            <!--            </el-table-column>-->
           </el-table>
         </el-card>
 
@@ -192,29 +246,29 @@
           </el-steps>
           <div class="mt-4">
             <el-select
-              v-model="selectedSemester"
-              placeholder="选择学期"
-              style="width: 200px; margin-right: 10px"
+                v-model="selectedSemester"
+                placeholder="选择学期"
+                style="width: 200px; margin-right: 10px"
             >
               <el-option
-                v-for="i in 8"
-                :key="i"
-                :label="`第${i}学期`"
-                :value="i"
+                  v-for="i in 8"
+                  :key="i"
+                  :label="`第${i}学期`"
+                  :value="i"
               />
             </el-select>
             <el-button type="primary" @click="handleViewSemesterCourses"
-              >查看课程</el-button
+            >查看课程</el-button
             >
           </div>
 
           <!-- 学期课程列表 -->
           <el-table
-            v-if="semesterCourses.length > 0"
-            :data="semesterCourses"
-            border
-            stripe
-            class="mt-4"
+              v-if="semesterCourses.length > 0"
+              :data="semesterCourses"
+              border
+              stripe
+              class="mt-4"
           >
             <el-table-column prop="courseName" label="课程名称" width="200" />
             <el-table-column prop="credit" label="学分" width="80" />
@@ -237,8 +291,8 @@
                   导出Excel
                 </el-button>
                 <el-button
-                  type="primary"
-                  @click="showFullScheduleTable = !showFullScheduleTable"
+                    type="primary"
+                    @click="showFullScheduleTable = !showFullScheduleTable"
                 >
                   <el-icon><View /></el-icon>
                   {{ showFullScheduleTable ? "隐藏表格" : "显示表格" }}
@@ -249,11 +303,11 @@
 
           <!-- 完整课程安排表格 -->
           <el-table
-            v-if="showFullScheduleTable"
-            :data="fullScheduleTableData"
-            border
-            stripe
-            style="margin-bottom: 20px"
+              v-if="showFullScheduleTable"
+              :data="fullScheduleTableData"
+              border
+              stripe
+              style="margin-bottom: 20px"
           >
             <el-table-column prop="semester" label="学期" width="100" />
             <el-table-column prop="courseName" label="课程名称" width="200" />
@@ -261,31 +315,31 @@
             <el-table-column prop="credit" label="学分" width="80" />
             <el-table-column prop="totalHours" label="总学时" width="80" />
             <el-table-column
-              prop="theoreticalHours"
-              label="理论学时"
-              width="100"
+                prop="theoreticalHours"
+                label="理论学时"
+                width="100"
             />
             <el-table-column
-              prop="practicalHours"
-              label="实践学时"
-              width="100"
+                prop="practicalHours"
+                label="实践学时"
+                width="100"
             />
             <el-table-column prop="courseType" label="课程类型" width="120" />
             <el-table-column prop="courseNature" label="课程性质" width="120" />
             <el-table-column prop="examMark" label="考核方式" width="100" />
             <el-table-column
-              prop="courseCategory"
-              label="课程类别"
-              width="120"
+                prop="courseCategory"
+                label="课程类别"
+                width="120"
             />
             <el-table-column prop="teacherIds" label="授课教师" width="150" />
           </el-table>
 
           <div class="text-center mt-4">
             <el-button
-              type="success"
-              size="large"
-              @click="handleExportFullSchedule"
+                type="success"
+                size="large"
+                @click="handleExportFullSchedule"
             >
               <el-icon><Download /></el-icon>
               导出四年八个学期完整课程安排
@@ -302,60 +356,60 @@
 
     <!-- 课程表单对话框 -->
     <el-dialog
-      v-model="courseFormVisible"
-      :title="courseForm.courseId ? '编辑课程' : '添加课程'"
-      width="600px"
+        v-model="courseFormVisible"
+        :title="courseForm.courseId ? '编辑课程' : '添加课程'"
+        width="600px"
     >
       <el-form :model="courseForm" label-width="120px">
         <el-form-item label="课程名称" required>
           <el-input
-            v-model="courseForm.courseName"
-            placeholder="请输入课程名称"
+              v-model="courseForm.courseName"
+              placeholder="请输入课程名称"
           />
         </el-form-item>
         <el-form-item label="课程代码" required>
           <el-input
-            v-model="courseForm.courseCode"
-            placeholder="请输入课程代码"
+              v-model="courseForm.courseCode"
+              placeholder="请输入课程代码"
           />
         </el-form-item>
         <el-form-item label="学分" required>
           <el-input
-            v-model.number="courseForm.credit"
-            placeholder="请输入学分"
-            type="number"
-            step="0.5"
-            min="0"
+              v-model.number="courseForm.credit"
+              placeholder="请输入学分"
+              type="number"
+              step="0.5"
+              min="0"
           />
         </el-form-item>
         <el-form-item label="总学时" required>
           <el-input
-            v-model.number="courseForm.totalHours"
-            placeholder="请输入总学时"
-            type="number"
-            min="1"
+              v-model.number="courseForm.totalHours"
+              placeholder="请输入总学时"
+              type="number"
+              min="1"
           />
         </el-form-item>
         <el-form-item label="理论学时" required>
           <el-input
-            v-model.number="courseForm.theoreticalHours"
-            placeholder="请输入理论学时"
-            type="number"
-            min="0"
+              v-model.number="courseForm.theoreticalHours"
+              placeholder="请输入理论学时"
+              type="number"
+              min="0"
           />
         </el-form-item>
         <el-form-item label="实践学时" required>
           <el-input
-            v-model.number="courseForm.practicalHours"
-            placeholder="请输入实践学时"
-            type="number"
-            min="0"
+              v-model.number="courseForm.practicalHours"
+              placeholder="请输入实践学时"
+              type="number"
+              min="0"
           />
         </el-form-item>
         <el-form-item label="课程类型" required>
           <el-select
-            v-model="courseForm.courseType"
-            placeholder="请选择课程类型"
+              v-model="courseForm.courseType"
+              placeholder="请选择课程类型"
           >
             <el-option label="公共课" value="公共课" />
             <el-option label="基础课" value="基础课" />
@@ -365,8 +419,8 @@
         </el-form-item>
         <el-form-item label="课程性质" required>
           <el-select
-            v-model="courseForm.courseNature"
-            placeholder="请选择课程性质"
+              v-model="courseForm.courseNature"
+              placeholder="请选择课程性质"
           >
             <el-option label="必修" value="必修" />
             <el-option label="选修" value="选修" />
@@ -380,8 +434,8 @@
         </el-form-item>
         <el-form-item label="课程类别" required>
           <el-select
-            v-model="courseForm.courseCategory"
-            placeholder="请选择课程类别"
+              v-model="courseForm.courseCategory"
+              placeholder="请选择课程类别"
           >
             <el-option label="通识教育" value="通识教育" />
             <el-option label="专业教育" value="专业教育" />
@@ -390,16 +444,16 @@
         </el-form-item>
         <el-form-item label="授课教师">
           <el-input
-            v-model="courseForm.teacherIds"
-            placeholder="请输入授课教师ID，多个用逗号分隔"
+              v-model="courseForm.teacherIds"
+              placeholder="请输入授课教师ID，多个用逗号分隔"
           />
         </el-form-item>
         <el-form-item label="课程描述">
           <el-input
-            v-model="courseForm.description"
-            placeholder="请输入课程描述"
-            type="textarea"
-            rows="3"
+              v-model="courseForm.description"
+              placeholder="请输入课程描述"
+              type="textarea"
+              rows="3"
           />
         </el-form-item>
       </el-form>
@@ -487,8 +541,8 @@ const courseForm = reactive({
 const fetchPrograms = async () => {
   try {
     const response = await getTrainingPrograms(
-      currentPage.value,
-      pageSize.value
+        currentPage.value,
+        pageSize.value
     );
     programs.value = response.records;
     total.value = response.total;
@@ -518,13 +572,13 @@ const handleSelectionChange = (selection) => {
 const handleBatchDelete = async () => {
   try {
     await ElMessageBox.confirm(
-      `确定要删除选中的 ${selectedProgramIds.value.length} 条培养方案记录吗？`,
-      "删除确认",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-      }
+        `确定要删除选中的 ${selectedProgramIds.value.length} 条培养方案记录吗？`,
+        "删除确认",
+        {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning",
+        }
     );
 
     await deleteProgramBatch(selectedProgramIds.value);
@@ -584,7 +638,7 @@ const handleSaveProgram = async () => {
     console.error("错误状态:", error.response?.status);
     console.error("错误数据:", error.response?.data);
     ElMessage.error(
-      programForm.programId ? "培养方案更新失败" : "培养方案添加失败"
+        programForm.programId ? "培养方案更新失败" : "培养方案添加失败"
     );
     console.error("保存培养方案失败:", error);
   }
@@ -759,6 +813,24 @@ onMounted(() => {
   align-items: center;
 }
 
+/* 新增：仅标题风格（不影响其它区域） */
+.title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.page-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.86);
+  line-height: 1.2;
+}
+.page-subtitle {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.2;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -796,5 +868,16 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   margin-bottom: 20px;
+}
+.table-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.action-button {
+  min-width: 64px;
+  justify-content: center;
 }
 </style>
