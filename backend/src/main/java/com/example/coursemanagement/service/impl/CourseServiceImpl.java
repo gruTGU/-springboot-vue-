@@ -117,6 +117,11 @@ public class CourseServiceImpl implements CourseService {
     public List<Course> getCoursesByMajorAndSemester(Integer majorId, Integer semesterId) {
         return courseRepository.findByMajorIdAndSemesterId(majorId, semesterId);
     }
+
+    @Override
+    public List<Course> getCoursesByProgramAndSemester(Integer programId, Integer semesterId) {
+        return courseRepository.findByProgramIdAndSemesterId(programId, semesterId);
+    }
     
     @Override
     public Map<Integer, List<Course>> getFullCourseScheduleByProgramId(Integer programId) {
@@ -131,41 +136,51 @@ public class CourseServiceImpl implements CourseService {
     
     @Override
     public Map<String, Object> getCourseStatistics(Integer programId) {
-        Map<String, Object> statistics = new HashMap<>();
         List<Course> courses = courseRepository.findByProgramId(programId);
-        
+        return buildCourseStatistics(courses);
+    }
+
+    @Override
+    public Map<String, Object> getSemesterCourseStatistics(Integer programId, Integer semesterId) {
+        List<Course> courses = courseRepository.findByProgramIdAndSemesterId(programId, semesterId);
+        return buildCourseStatistics(courses);
+    }
+
+    private Map<String, Object> buildCourseStatistics(List<Course> courses) {
+        Map<String, Object> statistics = new HashMap<>();
+
         // 计算总学分
         Double totalCredit = courses.stream()
-                .mapToDouble(Course::getCredit)
+                .mapToDouble(course -> course.getCredit() != null ? course.getCredit() : 0)
                 .sum();
-        
+
         // 计算总学时
         Integer totalHours = courses.stream()
-                .mapToInt(Course::getTotalHours)
+                .mapToInt(course -> course.getTotalHours() != null ? course.getTotalHours() : 0)
                 .sum();
-        
+
         // 计算理论学时
         Integer totalTheoreticalHours = courses.stream()
                 .mapToInt(course -> course.getTheoreticalHours() != null ? course.getTheoreticalHours() : 0)
                 .sum();
-        
+
         // 计算实践学时
         Integer totalPracticalHours = courses.stream()
                 .mapToInt(course -> course.getPracticalHours() != null ? course.getPracticalHours() : 0)
                 .sum();
-        
+
         // 按课程类型统计
         Map<String, Long> courseTypeCount = courses.stream()
-                .collect(Collectors.groupingBy(Course::getCourseType, Collectors.counting()));
-        
+                .collect(Collectors.groupingBy(course -> course.getCourseType() != null ? course.getCourseType() : "未分类", Collectors.counting()));
+
         // 按课程性质统计
         Map<String, Long> courseNatureCount = courses.stream()
-                .collect(Collectors.groupingBy(Course::getCourseNature, Collectors.counting()));
-        
+                .collect(Collectors.groupingBy(course -> course.getCourseNature() != null ? course.getCourseNature() : "未分类", Collectors.counting()));
+
         // 按课程类别统计
         Map<String, Long> courseCategoryCount = courses.stream()
-                .collect(Collectors.groupingBy(Course::getCourseCategory, Collectors.counting()));
-        
+                .collect(Collectors.groupingBy(course -> course.getCourseCategory() != null ? course.getCourseCategory() : "未分类", Collectors.counting()));
+
         statistics.put("totalCourses", courses.size());
         statistics.put("totalCredit", totalCredit);
         statistics.put("totalHours", totalHours);
@@ -174,7 +189,7 @@ public class CourseServiceImpl implements CourseService {
         statistics.put("courseTypeCount", courseTypeCount);
         statistics.put("courseNatureCount", courseNatureCount);
         statistics.put("courseCategoryCount", courseCategoryCount);
-        
+
         return statistics;
     }
 }

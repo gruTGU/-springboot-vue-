@@ -153,6 +153,14 @@ public class CourseController {
     public ResponseEntity<List<Course>> getCoursesByProgram(@PathVariable Integer programId) {
         return ResponseEntity.ok(courseService.getCoursesByProgramId(programId));
     }
+
+    /**
+     * 根据培养方案ID和学期ID查询课程列表
+     */
+    @GetMapping("/by-program/{programId}/semester/{semesterId}")
+    public ResponseEntity<List<Course>> getCoursesByProgramAndSemester(@PathVariable Integer programId, @PathVariable Integer semesterId) {
+        return ResponseEntity.ok(courseService.getCoursesByProgramAndSemester(programId, semesterId));
+    }
     
     /**
      * 根据专业ID查询课程列表
@@ -184,5 +192,13 @@ public class CourseController {
     @GetMapping("/statistics/{programId}")
     public ResponseEntity<Map<String, Object>> getCourseStatistics(@PathVariable Integer programId) {
         return ResponseEntity.ok(courseService.getCourseStatistics(programId));
+    }
+
+    /**
+     * 获取指定培养方案与学期的课程统计信息
+     */
+    @GetMapping("/statistics/{programId}/semester/{semesterId}")
+    public ResponseEntity<Map<String, Object>> getSemesterCourseStatistics(@PathVariable Integer programId, @PathVariable Integer semesterId) {
+        return ResponseEntity.ok(courseService.getSemesterCourseStatistics(programId, semesterId));
     }
 }

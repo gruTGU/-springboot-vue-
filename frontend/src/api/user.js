@@ -89,6 +89,17 @@ export const assignRoles = (userId, roleIds) => {
 };
 
 /**
+ * 获取教师用户列表
+ * @returns {Promise}
+ */
+export const getTeachers = () => {
+  return request({
+    url: "/users/teachers",
+    method: "GET",
+  });
+};
+
+/**
  * 用户登录
  * @param {object} loginForm - 登录表单信息
  * @returns {Promise}

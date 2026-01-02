@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS training_program (
     duration INT NOT NULL COMMENT '学制（年）',
     total_credit DECIMAL(4,1) NOT NULL COMMENT '总学分',
     effective_year INT NOT NULL COMMENT '生效年份',
+    teacher_id INT COMMENT '负责老师ID',
     description TEXT COMMENT '培养方案描述',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -38,6 +39,7 @@ CREATE TABLE IF NOT EXISTS course (
     course_nature ENUM('公共基础课', '专业基础课', '专业课') NOT NULL COMMENT '课程性质',
     exam_mark VARCHAR(10) DEFAULT NULL COMMENT '考试方式',
     course_category VARCHAR(50) DEFAULT NULL COMMENT '课程分类',
+    teacher_ids VARCHAR(255) COMMENT '课程组老师ID列表，逗号分隔',
     description TEXT COMMENT '课程描述',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

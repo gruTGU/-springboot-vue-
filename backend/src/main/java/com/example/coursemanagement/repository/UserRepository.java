@@ -18,6 +18,8 @@ public class UserRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    private static final String TEACHER_ROLE_NAME = "教师";
+
     /**
      * 查询所有用户
      */
@@ -91,5 +93,16 @@ public class UserRepository {
     public int deleteById(Integer id) {
         String sql = "DELETE FROM user WHERE user_id = ?";
         return jdbcTemplate.update(sql, id);
+    }
+
+    /**
+     * 查询教师用户列表
+     */
+    public List<User> findTeachers() {
+        String sql = "SELECT DISTINCT u.* FROM user u "
+                + "JOIN user_role ur ON u.user_id = ur.user_id "
+                + "JOIN role r ON ur.role_id = r.role_id "
+                + "WHERE r.role_name = ?";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class), TEACHER_ROLE_NAME);
     }
 }

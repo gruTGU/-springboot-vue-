@@ -29,6 +29,7 @@ public class Course {
     private String courseNature;
     private String examMark;
     private String courseCategory;
+    private String teacherIds;
     private String description;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;

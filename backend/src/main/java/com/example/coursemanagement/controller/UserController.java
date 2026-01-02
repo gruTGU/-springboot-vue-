@@ -97,4 +97,12 @@ public class UserController {
         int result = userRoleService.assignRoles(id, roleIds);
         return ResponseEntity.ok(result);
     }
+
+    /**
+     * 查询教师用户列表
+     */
+    @GetMapping("/teachers")
+    public ResponseEntity<List<User>> getTeachers() {
+        return ResponseEntity.ok(userService.findTeachers());
+    }
 }
