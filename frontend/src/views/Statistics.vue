@@ -12,9 +12,9 @@
         <div class="statistics-cards">
           <el-card class="stat-card">
             <el-statistic
-              title="课程总数"
-              :value="courseStatistics.totalCourses"
-              :precision="0"
+                title="课程总数"
+                :value="courseStatistics.totalCourses"
+                :precision="0"
             >
               <template #prefix>
                 <el-icon class="el-icon--success"><Cpu /></el-icon>
@@ -24,9 +24,9 @@
 
           <el-card class="stat-card">
             <el-statistic
-              title="知识点总数"
-              :value="knowledgePointStatistics.totalKnowledgePoints"
-              :precision="0"
+                title="知识点总数"
+                :value="knowledgePointStatistics.totalKnowledgePoints"
+                :precision="0"
             >
               <template #prefix>
                 <el-icon class="el-icon--warning"><Document /></el-icon>
@@ -36,9 +36,9 @@
 
           <el-card class="stat-card">
             <el-statistic
-              title="题目总数"
-              :value="questionBankStatistics.totalQuestions"
-              :precision="0"
+                title="题目总数"
+                :value="questionBankStatistics.totalQuestions"
+                :precision="0"
             >
               <template #prefix>
                 <el-icon class="el-icon--primary"><EditPen /></el-icon>
@@ -48,9 +48,9 @@
 
           <el-card class="stat-card">
             <el-statistic
-              title="试卷总数"
-              :value="examPaperStatistics.totalPapers"
-              :precision="0"
+                title="试卷总数"
+                :value="examPaperStatistics.totalPapers"
+                :precision="0"
             >
               <template #prefix>
                 <el-icon class="el-icon--danger"><DocumentRemove /></el-icon>
@@ -60,9 +60,9 @@
 
           <el-card class="stat-card">
             <el-statistic
-              title="课程平均学分"
-              :value="courseStatistics.averageCredit"
-              :precision="1"
+                title="课程平均学分"
+                :value="courseStatistics.averageCredit"
+                :precision="1"
             >
               <template #prefix>
                 <el-icon class="el-icon--success"><Cpu /></el-icon>
@@ -72,9 +72,9 @@
 
           <el-card class="stat-card">
             <el-statistic
-              title="试卷平均总分"
-              :value="examPaperStatistics.averageTotalScore"
-              :precision="1"
+                title="试卷平均总分"
+                :value="examPaperStatistics.averageTotalScore"
+                :precision="1"
             >
               <template #prefix>
                 <el-icon class="el-icon--primary"><DocumentRemove /></el-icon>
@@ -92,10 +92,10 @@
           </template>
           <el-table :data="questionTypeDist" style="width: 100%">
             <el-table-column
-              prop="type"
-              label="题型"
-              width="120"
-              :formatter="formatQuestionType"
+                prop="type"
+                label="题型"
+                width="120"
+                :formatter="formatQuestionType"
             >
             </el-table-column>
             <el-table-column prop="count" label="数量" width="100">
@@ -111,22 +111,15 @@
                 <span>课程分布（培养方案）</span>
               </div>
             </template>
-<<<<<<< ours
-            <el-table v-if="courseByProgram.length" :data="courseByProgram">
-              <el-table-column prop="programName" label="培养方案" />
-              <el-table-column prop="courseCount" label="课程数量" width="120" />
-            </el-table>
-=======
             <el-table v-if="courseByProgram.length" :data="visibleCourseByProgram">
               <el-table-column prop="programName" label="培养方案" />
               <el-table-column prop="courseCount" label="课程数量" width="120" />
             </el-table>
-            <div v-if="courseByProgram.length > 5" class="table-actions">
+            <div v-if="courseByProgram.length > tablePreviewLimit" class="table-actions">
               <el-button type="primary" link @click="toggleCourseByProgram">
                 {{ showAllCourseByProgram ? "收起" : "查看更多" }}
               </el-button>
             </div>
->>>>>>> theirs
             <el-empty v-else description="暂无数据" />
           </el-card>
 
@@ -136,22 +129,15 @@
                 <span>课程分布（课程性质）</span>
               </div>
             </template>
-<<<<<<< ours
-            <el-table v-if="courseByNature.length" :data="courseByNature">
-              <el-table-column prop="courseNature" label="课程性质" />
-              <el-table-column prop="courseCount" label="数量" width="120" />
-            </el-table>
-=======
             <el-table v-if="courseByNature.length" :data="visibleCourseByNature">
               <el-table-column prop="courseNature" label="课程性质" />
               <el-table-column prop="courseCount" label="数量" width="120" />
             </el-table>
-            <div v-if="courseByNature.length > 5" class="table-actions">
+            <div v-if="courseByNature.length > tablePreviewLimit" class="table-actions">
               <el-button type="primary" link @click="toggleCourseByNature">
                 {{ showAllCourseByNature ? "收起" : "查看更多" }}
               </el-button>
             </div>
->>>>>>> theirs
             <el-empty v-else description="暂无数据" />
           </el-card>
 
@@ -161,30 +147,23 @@
                 <span>知识点覆盖（课程维度）</span>
               </div>
             </template>
-<<<<<<< ours
-            <el-table v-if="knowledgePointByCourse.length" :data="knowledgePointByCourse">
-=======
             <el-table
-              v-if="knowledgePointByCourse.length"
-              :data="visibleKnowledgePointByCourse"
+                v-if="knowledgePointByCourse.length"
+                :data="visibleKnowledgePointByCourse"
             >
->>>>>>> theirs
               <el-table-column prop="courseName" label="课程" />
               <el-table-column prop="knowledgePointCount" label="知识点数量" width="120" />
               <el-table-column prop="questionCount" label="题目数量" width="120" />
             </el-table>
-<<<<<<< ours
-=======
-            <div v-if="knowledgePointByCourse.length > 5" class="table-actions">
+            <div v-if="knowledgePointByCourse.length > tablePreviewLimit" class="table-actions">
               <el-button
-                type="primary"
-                link
-                @click="toggleKnowledgePointByCourse"
+                  type="primary"
+                  link
+                  @click="toggleKnowledgePointByCourse"
               >
                 {{ showAllKnowledgePointByCourse ? "收起" : "查看更多" }}
               </el-button>
             </div>
->>>>>>> theirs
             <el-empty v-else description="暂无数据" />
           </el-card>
 
@@ -194,30 +173,23 @@
                 <span>知识点覆盖（知识点维度）</span>
               </div>
             </template>
-<<<<<<< ours
-            <el-table v-if="knowledgePointCoverage.length" :data="knowledgePointCoverage">
-=======
             <el-table
-              v-if="knowledgePointCoverage.length"
-              :data="visibleKnowledgePointCoverage"
+                v-if="knowledgePointCoverage.length"
+                :data="visibleKnowledgePointCoverage"
             >
->>>>>>> theirs
               <el-table-column prop="kpName" label="知识点" />
               <el-table-column prop="courseName" label="课程" />
               <el-table-column prop="questionCount" label="题目数量" width="120" />
             </el-table>
-<<<<<<< ours
-=======
-            <div v-if="knowledgePointCoverage.length > 5" class="table-actions">
+            <div v-if="knowledgePointCoverage.length > tablePreviewLimit" class="table-actions">
               <el-button
-                type="primary"
-                link
-                @click="toggleKnowledgePointCoverage"
+                  type="primary"
+                  link
+                  @click="toggleKnowledgePointCoverage"
               >
                 {{ showAllKnowledgePointCoverage ? "收起" : "查看更多" }}
               </el-button>
             </div>
->>>>>>> theirs
             <el-empty v-else description="暂无数据" />
           </el-card>
 
@@ -311,8 +283,7 @@ const knowledgePointCoverage = ref([]);
 const knowledgePointByCourse = ref([]);
 const paperTypeDist = ref([]);
 const papersByCourse = ref([]);
-<<<<<<< ours
-=======
+const tablePreviewLimit = 5;
 
 const showAllCourseByProgram = ref(false);
 const showAllCourseByNature = ref(false);
@@ -320,24 +291,24 @@ const showAllKnowledgePointCoverage = ref(false);
 const showAllKnowledgePointByCourse = ref(false);
 
 const visibleCourseByProgram = computed(() =>
-  showAllCourseByProgram.value
-    ? courseByProgram.value
-    : courseByProgram.value.slice(0, 5)
+    showAllCourseByProgram.value
+        ? courseByProgram.value
+        : courseByProgram.value.slice(0, tablePreviewLimit)
 );
 const visibleCourseByNature = computed(() =>
-  showAllCourseByNature.value
-    ? courseByNature.value
-    : courseByNature.value.slice(0, 5)
+    showAllCourseByNature.value
+        ? courseByNature.value
+        : courseByNature.value.slice(0, tablePreviewLimit)
 );
 const visibleKnowledgePointCoverage = computed(() =>
-  showAllKnowledgePointCoverage.value
-    ? knowledgePointCoverage.value
-    : knowledgePointCoverage.value.slice(0, 5)
+    showAllKnowledgePointCoverage.value
+        ? knowledgePointCoverage.value
+        : knowledgePointCoverage.value.slice(0, tablePreviewLimit)
 );
 const visibleKnowledgePointByCourse = computed(() =>
-  showAllKnowledgePointByCourse.value
-    ? knowledgePointByCourse.value
-    : knowledgePointByCourse.value.slice(0, 5)
+    showAllKnowledgePointByCourse.value
+        ? knowledgePointByCourse.value
+        : knowledgePointByCourse.value.slice(0, tablePreviewLimit)
 );
 
 const toggleCourseByProgram = () => {
@@ -352,7 +323,6 @@ const toggleKnowledgePointCoverage = () => {
 const toggleKnowledgePointByCourse = () => {
   showAllKnowledgePointByCourse.value = !showAllKnowledgePointByCourse.value;
 };
->>>>>>> theirs
 
 // 获取课程统计数据
 const fetchCourseStatistics = async () => {
@@ -397,7 +367,7 @@ const fetchQuestionBankStatistics = async () => {
     // 提取题型分布数据用于表格
     questionTypeDist.value = response.questionTypeDistribution || [];
     questionDifficultyDist.value =
-      response.questionDifficultyDistribution || [];
+        response.questionDifficultyDistribution || [];
   } catch (error) {
     ElMessage.error("获取题库统计数据失败");
     console.error("获取题库统计数据失败:", error);
@@ -492,13 +462,9 @@ onMounted(async () => {
   align-items: center;
 }
 
-<<<<<<< ours
-=======
 .table-actions {
   display: flex;
   justify-content: flex-end;
   padding: 8px 0 0;
 }
-
->>>>>>> theirs
 </style>
