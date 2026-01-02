@@ -25,6 +25,7 @@ public class TrainingProgramRepository implements TrainingProgramRepositoryApi {
     private volatile Boolean effectiveYearColumnAvailable;
     private volatile Boolean descriptionColumnAvailable;
     private volatile Boolean programCodeNullable;
+    private volatile Boolean teacherIdColumnAvailable;
 
     /**
      * 查询所有培养方案
@@ -85,6 +86,7 @@ public class TrainingProgramRepository implements TrainingProgramRepositoryApi {
         boolean hasEffectiveYear = ensureEffectiveYearColumnAvailable();
         boolean hasProgramName = isColumnAvailable("program_name");
         boolean hasDescription = isDescriptionColumnAvailable();
+        boolean hasTeacherId = ensureTeacherIdColumnAvailable();
 
         List<String> updates = new ArrayList<>();
         List<Object> params = new ArrayList<>();
@@ -115,6 +117,11 @@ public class TrainingProgramRepository implements TrainingProgramRepositoryApi {
         if (hasDescription) {
             updates.add("description = ?");
             params.add(program.getDescription());
+        }
+
+        if (hasTeacherId) {
+            updates.add("teacher_id = ?");
+            params.add(program.getTeacherId());
         }
 
         updates.add("update_time = NOW()");
@@ -162,6 +169,15 @@ public class TrainingProgramRepository implements TrainingProgramRepositoryApi {
                 "ALTER TABLE training_program ADD COLUMN effective_year INT NOT NULL DEFAULT 0 COMMENT '生效年份' AFTER total_credit"
         );
         return effectiveYearColumnAvailable;
+    }
+
+    private boolean ensureTeacherIdColumnAvailable() {
+        teacherIdColumnAvailable = ensureColumnAvailable(
+                teacherIdColumnAvailable,
+                "teacher_id",
+                "ALTER TABLE training_program ADD COLUMN teacher_id INT NULL COMMENT '负责老师ID' AFTER effective_year"
+        );
+        return teacherIdColumnAvailable;
     }
 
     private boolean ensureColumnAvailable(Boolean cachedValue, String columnName, String alterSql) {
@@ -230,6 +246,10 @@ public class TrainingProgramRepository implements TrainingProgramRepositoryApi {
             }
             case "description" -> {
                 value = program.getDescription();
+                hasValue = value != null;
+            }
+            case "teacher_id" -> {
+                value = program.getTeacherId();
                 hasValue = value != null;
             }
             default -> {
@@ -402,8 +422,10 @@ public class TrainingProgramRepository implements TrainingProgramRepositoryApi {
      * 根据老师ID查询培养方案列表
      */
     public List<TrainingProgram> findByTeacherId(Integer teacherId) {
-        // 由于表中没有teacher_id字段，返回空列表或所有记录
-        // 这里返回所有记录作为临时解决方案
-        return findAll();
+        if (!ensureTeacherIdColumnAvailable()) {
+            return findAll();
+        }
+        String sql = "SELECT * FROM training_program WHERE teacher_id = ?";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(TrainingProgram.class), teacherId);
     }
 }

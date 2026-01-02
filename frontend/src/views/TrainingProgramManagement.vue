@@ -35,6 +35,11 @@
         <el-table-column type="selection" width="55" />
         <el-table-column prop="programId" label="方案ID" width="80" />
         <el-table-column prop="majorName" label="专业名称" width="200" />
+        <el-table-column label="负责教师" width="140">
+          <template #default="scope">
+            {{ getTeacherName(scope.row.teacherId) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="duration" label="学制" width="80" />
         <el-table-column prop="totalCredit" label="总学分" width="80" />
         <el-table-column prop="effectiveYear" label="生效年份" width="80" />
@@ -137,6 +142,16 @@
               min="2000"
               max="2100"
           />
+        </el-form-item>
+        <el-form-item label="负责教师">
+          <el-select v-model="programForm.teacherId" placeholder="请选择负责教师">
+            <el-option
+                v-for="teacher in teacherOptions"
+                :key="teacher.userId"
+                :label="`${teacher.realName}(${teacher.username})`"
+                :value="teacher.userId"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="培养方案描述">
           <el-input
@@ -278,6 +293,61 @@
             <el-table-column prop="teacherIds" label="授课教师" width="150" />
           </el-table>
           <el-empty v-else description="该学期暂无课程" class="mt-4" />
+        </el-card>
+
+        <!-- 学期课程统计 -->
+        <el-card class="mb-4">
+          <template #header>
+            <div class="card-header">
+              <span>课程属性统计</span>
+            </div>
+          </template>
+          <el-row :gutter="16">
+            <el-col :span="6">
+              <div class="stat-tile">
+                <div class="stat-label">课程数量</div>
+                <div class="stat-value">{{ semesterStatistics.totalCourses }}</div>
+              </div>
+            </el-col>
+            <el-col :span="6">
+              <div class="stat-tile">
+                <div class="stat-label">总学分</div>
+                <div class="stat-value">{{ Number(semesterStatistics.totalCredit || 0).toFixed(1) }}</div>
+              </div>
+            </el-col>
+            <el-col :span="6">
+              <div class="stat-tile">
+                <div class="stat-label">总学时</div>
+                <div class="stat-value">{{ semesterStatistics.totalHours }}</div>
+              </div>
+            </el-col>
+            <el-col :span="6">
+              <div class="stat-tile">
+                <div class="stat-label">实践学时</div>
+                <div class="stat-value">{{ semesterStatistics.totalPracticalHours }}</div>
+              </div>
+            </el-col>
+          </el-row>
+          <el-row :gutter="16" class="mt-3">
+            <el-col :span="8">
+              <el-table :data="semesterStatistics.courseTypeSummary" size="small" border>
+                <el-table-column prop="label" label="课程类型" />
+                <el-table-column prop="count" label="数量" width="80" />
+              </el-table>
+            </el-col>
+            <el-col :span="8">
+              <el-table :data="semesterStatistics.courseNatureSummary" size="small" border>
+                <el-table-column prop="label" label="课程性质" />
+                <el-table-column prop="count" label="数量" width="80" />
+              </el-table>
+            </el-col>
+            <el-col :span="8">
+              <el-table :data="semesterStatistics.courseCategorySummary" size="small" border>
+                <el-table-column prop="label" label="课程类别" />
+                <el-table-column prop="count" label="数量" width="80" />
+              </el-table>
+            </el-col>
+          </el-row>
         </el-card>
 
         <!-- 导出完整课程安排 -->
@@ -484,7 +554,9 @@ import {
   updateCourse,
   deleteCourse,
   getProgramFullSchedule,
+  getSemesterCourseStatistics,
 } from "../api/course";
+import { getTeachers } from "../api/user";
 
 // 表格数据
 const programs = ref([]);
@@ -492,6 +564,7 @@ const total = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(10);
 const selectedProgramIds = ref([]);
+const teacherOptions = ref([]);
 
 // 对话框
 const dialogVisible = ref(false);
@@ -501,6 +574,7 @@ const programForm = reactive({
   duration: 4,
   totalCredit: 160,
   effectiveYear: new Date().getFullYear(),
+  teacherId: null,
   description: "",
 });
 
@@ -513,6 +587,15 @@ const programCourses = ref([]);
 const activeStep = ref(0);
 const selectedSemester = ref(1);
 const semesterCourses = ref([]);
+const semesterStatistics = reactive({
+  totalCourses: 0,
+  totalCredit: 0,
+  totalHours: 0,
+  totalPracticalHours: 0,
+  courseTypeSummary: [],
+  courseNatureSummary: [],
+  courseCategorySummary: [],
+});
 
 // 完整课程安排表格相关状态
 const showFullScheduleTable = ref(false);
@@ -537,6 +620,24 @@ const courseForm = reactive({
   description: "",
 });
 
+const getTeacherName = (teacherId) => {
+  if (!teacherId) {
+    return "未指定";
+  }
+  const teacher = teacherOptions.value.find((item) => item.userId === teacherId);
+  return teacher ? teacher.realName : `教师ID:${teacherId}`;
+};
+
+const formatSummary = (mapData) => {
+  if (!mapData) {
+    return [];
+  }
+  return Object.entries(mapData).map(([label, count]) => ({
+    label,
+    count,
+  }));
+};
+
 // 获取培养方案列表
 const fetchPrograms = async () => {
   try {
@@ -549,6 +650,16 @@ const fetchPrograms = async () => {
   } catch (error) {
     ElMessage.error("获取培养方案列表失败");
     console.error("获取培养方案列表失败:", error);
+  }
+};
+
+const fetchTeachers = async () => {
+  try {
+    teacherOptions.value = await getTeachers();
+  } catch (error) {
+    teacherOptions.value = [];
+    ElMessage.error("获取教师列表失败");
+    console.error("获取教师列表失败:", error);
   }
 };
 
@@ -601,6 +712,7 @@ const handleAddProgram = () => {
     duration: 4,
     totalCredit: 160,
     effectiveYear: new Date().getFullYear(),
+    teacherId: null,
     description: "",
   });
   dialogVisible.value = true;
@@ -755,6 +867,19 @@ const handleViewSemesterCourses = async () => {
   try {
     const schedule = await getProgramFullSchedule(currentProgram.programId);
     semesterCourses.value = schedule[selectedSemester.value] || [];
+    const stats = await getSemesterCourseStatistics(
+        currentProgram.programId,
+        selectedSemester.value
+    );
+    semesterStatistics.totalCourses = stats.totalCourses || 0;
+    semesterStatistics.totalCredit = stats.totalCredit || 0;
+    semesterStatistics.totalHours = stats.totalHours || 0;
+    semesterStatistics.totalPracticalHours = stats.totalPracticalHours || 0;
+    semesterStatistics.courseTypeSummary = formatSummary(stats.courseTypeCount);
+    semesterStatistics.courseNatureSummary = formatSummary(stats.courseNatureCount);
+    semesterStatistics.courseCategorySummary = formatSummary(
+        stats.courseCategoryCount
+    );
   } catch (error) {
     ElMessage.error("获取学期课程失败");
     console.error("获取学期课程失败:", error);
@@ -803,6 +928,7 @@ const handleExportFullSchedule = async () => {
 // 页面挂载时获取培养方案列表
 onMounted(() => {
   fetchPrograms();
+  fetchTeachers();
 });
 </script>
 
@@ -879,5 +1005,24 @@ onMounted(() => {
 .action-button {
   min-width: 64px;
   justify-content: center;
+}
+
+.stat-tile {
+  padding: 12px;
+  border-radius: 8px;
+  background: #f5f7fa;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #909399;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
 }
 </style>

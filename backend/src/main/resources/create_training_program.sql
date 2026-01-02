@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS training_program (
     duration INT NOT NULL,
     total_credit DECIMAL(4,1) NOT NULL,
     effective_year INT NOT NULL,
+    teacher_id INT COMMENT '负责老师ID',
     description TEXT,
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP

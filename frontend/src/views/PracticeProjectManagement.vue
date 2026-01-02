@@ -87,6 +87,59 @@
         </template>
       </el-dialog>
     </el-card>
+
+    <el-card class="mt-4">
+      <template #header>
+        <div class="card-header">
+          <div class="title-wrap">
+            <div class="page-title">实践课程表格</div>
+            <div class="page-subtitle">根据培养方案与学期生成课程表格</div>
+          </div>
+          <el-button type="primary" @click="handleGenerateCourseTable">
+            生成表格
+          </el-button>
+        </div>
+      </template>
+
+      <div class="table-filters">
+        <el-select v-model="selectedProgramId" placeholder="选择培养方案" style="width: 240px">
+          <el-option
+              v-for="program in trainingPrograms"
+              :key="program.programId"
+              :label="`${program.majorName}(${program.effectiveYear})`"
+              :value="program.programId"
+          />
+        </el-select>
+        <el-select v-model="selectedSemester" placeholder="选择学期" style="width: 160px">
+          <el-option
+              v-for="semester in semesterOptions"
+              :key="semester.value"
+              :label="semester.label"
+              :value="semester.value"
+          />
+        </el-select>
+      </div>
+
+      <el-table
+          v-if="practiceCourseTable.length"
+          :data="practiceCourseTable"
+          border
+          stripe
+          style="width: 100%"
+      >
+        <el-table-column prop="courseName" label="课程名称" min-width="160" />
+        <el-table-column prop="courseCode" label="课程代码" width="130" />
+        <el-table-column prop="credit" label="学分" width="80" />
+        <el-table-column prop="totalHours" label="总学时" width="100" />
+        <el-table-column prop="theoreticalHours" label="理论学时" width="100" />
+        <el-table-column prop="practicalHours" label="实践学时" width="100" />
+        <el-table-column prop="courseType" label="课程类型" width="100" />
+        <el-table-column prop="courseNature" label="课程性质" width="100" />
+        <el-table-column prop="examMark" label="考核方式" width="100" />
+        <el-table-column prop="courseCategory" label="课程类别" width="120" />
+      </el-table>
+      <el-empty v-else description="请选择培养方案与学期生成表格" />
+    </el-card>
   </div>
 </template>
 
@@ -100,6 +153,8 @@ import {
   updatePracticeProject,
   deletePracticeProject
 } from '@/api/practiceProject'
+import { getAllTrainingPrograms } from '@/api/trainingProgram'
+import { getCoursesByProgramAndSemester } from '@/api/course'
 
 // 项目列表
 const projects = ref([])
@@ -115,6 +170,21 @@ const form = ref({
   publisher: '',
   deadline: null
 })
+
+const trainingPrograms = ref([])
+const selectedProgramId = ref(null)
+const selectedSemester = ref(null)
+const practiceCourseTable = ref([])
+const semesterOptions = [
+  { value: 1, label: '第1学期' },
+  { value: 2, label: '第2学期' },
+  { value: 3, label: '第3学期' },
+  { value: 4, label: '第4学期' },
+  { value: 5, label: '第5学期' },
+  { value: 6, label: '第6学期' },
+  { value: 7, label: '第7学期' },
+  { value: 8, label: '第8学期' }
+]
 // 表单验证规则
 const rules = ref({
   title: [{ required: true, message: '请输入项目标题', trigger: 'blur' }],
@@ -206,6 +276,34 @@ const submitForm = () => {
   })
 }
 
+const loadTrainingPrograms = () => {
+  getAllTrainingPrograms()
+      .then((res) => {
+        trainingPrograms.value = res
+      })
+      .catch(() => {
+        ElMessage.error('获取培养方案失败')
+      })
+}
+
+const handleGenerateCourseTable = () => {
+  if (!selectedProgramId.value || !selectedSemester.value) {
+    ElMessage.warning('请先选择培养方案与学期')
+    return
+  }
+  getCoursesByProgramAndSemester(
+      selectedProgramId.value,
+      selectedSemester.value
+  )
+      .then((res) => {
+        practiceCourseTable.value = res
+        ElMessage.success('课程表格已生成')
+      })
+      .catch(() => {
+        ElMessage.error('生成课程表格失败')
+      })
+}
+
 // 加载项目列表
 const loadProjects = () => {
   getPracticeProjects().then((res) => {
@@ -216,8 +314,21 @@ const loadProjects = () => {
 // 组件挂载时加载数据
 onMounted(() => {
   loadProjects()
+  loadTrainingPrograms()
 })
 </script>
+
+<style scoped>
+.mt-4 {
+  margin-top: 16px;
+}
+
+.table-filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+</style>
 
 <style scoped>
 .card-header {

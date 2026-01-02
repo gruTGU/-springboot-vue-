@@ -40,7 +40,7 @@ public class CourseRepository {
      */
     public int save(Course course) {
         // 使用正确的列名，基于实际数据库模式
-        String sql = "INSERT INTO course (course_name, course_code, major_id, credit, total_hours, theory_hours, experiment_hours, design_hours, course_type_id, course_nature, course_category, exam_mark, program_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO course (course_name, course_code, major_id, credit, total_hours, theory_hours, experiment_hours, design_hours, course_type_id, course_nature, course_category, exam_mark, program_id, teacher_ids) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         System.out.println("执行SQL: " + sql);
         
@@ -74,7 +74,8 @@ public class CourseRepository {
                 course.getCourseNature(),
                 course.getCourseCategory(),
                 course.getExamMark(),
-                course.getProgramId());
+                course.getProgramId(),
+                course.getTeacherIds());
     }
 
     /**
@@ -82,7 +83,7 @@ public class CourseRepository {
      */
     public int update(Course course) {
         // 使用正确的列名，基于实际数据库模式
-        String sql = "UPDATE course SET course_name = ?, course_code = ?, major_id = ?, credit = ?, total_hours = ?, theory_hours = ?, experiment_hours = ?, design_hours = ?, course_type_id = ?, course_nature = ?, course_category = ?, exam_mark = ?, program_id = ? WHERE course_id = ?";
+        String sql = "UPDATE course SET course_name = ?, course_code = ?, major_id = ?, credit = ?, total_hours = ?, theory_hours = ?, experiment_hours = ?, design_hours = ?, course_type_id = ?, course_nature = ?, course_category = ?, exam_mark = ?, program_id = ?, teacher_ids = ? WHERE course_id = ?";
         
         System.out.println("执行SQL: " + sql);
         
@@ -117,6 +118,7 @@ public class CourseRepository {
                 course.getCourseCategory(),
                 course.getExamMark(),
                 course.getProgramId(),
+                course.getTeacherIds(),
                 course.getCourseId());
     }
 

@@ -38,4 +38,9 @@ public interface UserService {
      * 删除用户
      */
     int deleteById(Integer id);
+
+    /**
+     * 查询教师用户列表
+     */
+    List<User> findTeachers();
 }
