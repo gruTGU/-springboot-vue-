@@ -277,6 +277,48 @@
             <el-table-column prop="courseNature" label="课程性质" width="120" />
             <el-table-column prop="teacherIds" label="授课教师" width="150" />
           </el-table>
+          <div v-if="semesterStats" class="mt-4">
+            <el-descriptions title="学期统计" :column="3" border>
+              <el-descriptions-item label="课程数量">
+                {{ semesterStats.totalCourses }}
+              </el-descriptions-item>
+              <el-descriptions-item label="总学分">
+                {{ semesterStats.totalCredit }}
+              </el-descriptions-item>
+              <el-descriptions-item label="总学时">
+                {{ semesterStats.totalHours }}
+              </el-descriptions-item>
+              <el-descriptions-item label="理论学时">
+                {{ semesterStats.totalTheoreticalHours }}
+              </el-descriptions-item>
+              <el-descriptions-item label="实践学时">
+                {{ semesterStats.totalPracticalHours }}
+              </el-descriptions-item>
+            </el-descriptions>
+            <div class="stats-tags">
+              <div class="stat-group">
+                <span class="stat-label">课程性质：</span>
+                <el-tag
+                  v-for="(count, key) in semesterStats.courseNatureCount || {}"
+                  :key="`nature-${key}`"
+                  class="stat-tag"
+                  type="info"
+                >
+                  {{ key }} {{ count }}
+                </el-tag>
+              </div>
+              <div class="stat-group">
+                <span class="stat-label">课程类别：</span>
+                <el-tag
+                  v-for="(count, key) in semesterStats.courseCategoryCount || {}"
+                  :key="`category-${key}`"
+                  class="stat-tag"
+                >
+                  {{ key }} {{ count }}
+                </el-tag>
+              </div>
+            </div>
+          </div>
           <el-empty v-else description="该学期暂无课程" class="mt-4" />
         </el-card>
 
@@ -484,6 +526,7 @@ import {
   updateCourse,
   deleteCourse,
   getProgramFullSchedule,
+  getCourseStatisticsBySemester,
 } from "../api/course";
 
 // 表格数据
@@ -513,6 +556,7 @@ const programCourses = ref([]);
 const activeStep = ref(0);
 const selectedSemester = ref(1);
 const semesterCourses = ref([]);
+const semesterStats = ref(null);
 
 // 完整课程安排表格相关状态
 const showFullScheduleTable = ref(false);
@@ -755,6 +799,10 @@ const handleViewSemesterCourses = async () => {
   try {
     const schedule = await getProgramFullSchedule(currentProgram.programId);
     semesterCourses.value = schedule[selectedSemester.value] || [];
+    semesterStats.value = await getCourseStatisticsBySemester(
+      currentProgram.programId,
+      selectedSemester.value
+    );
   } catch (error) {
     ElMessage.error("获取学期课程失败");
     console.error("获取学期课程失败:", error);
@@ -811,6 +859,29 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.stats-tags {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #606266;
+}
+
+.stat-tag {
+  margin-bottom: 4px;
 }
 
 /* 新增：仅标题风格（不影响其它区域） */

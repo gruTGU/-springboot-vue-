@@ -84,9 +84,14 @@ public interface CourseService {
      * 根据培养方案ID查询四年八个学期的完整课程安排
      */
     Map<Integer, List<Course>> getFullCourseScheduleByProgramId(Integer programId);
-    
+
     /**
      * 获取课程属性统计信息
      */
     Map<String, Object> getCourseStatistics(Integer programId);
+
+    /**
+     * 获取指定学期的课程统计信息
+     */
+    Map<String, Object> getCourseStatisticsByProgramAndSemester(Integer programId, Integer semesterId);
 }

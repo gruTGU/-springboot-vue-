@@ -131,41 +131,39 @@ public class CourseServiceImpl implements CourseService {
     
     @Override
     public Map<String, Object> getCourseStatistics(Integer programId) {
-        Map<String, Object> statistics = new HashMap<>();
         List<Course> courses = courseRepository.findByProgramId(programId);
-        
-        // 计算总学分
+        return buildCourseStatistics(courses);
+    }
+
+    @Override
+    public Map<String, Object> getCourseStatisticsByProgramAndSemester(Integer programId, Integer semesterId) {
+        List<Course> courses = courseRepository.findByProgramIdAndSemesterId(programId, semesterId);
+        return buildCourseStatistics(courses);
+    }
+
+    private Map<String, Object> buildCourseStatistics(List<Course> courses) {
+        Map<String, Object> statistics = new HashMap<>();
+
         Double totalCredit = courses.stream()
-                .mapToDouble(Course::getCredit)
+                .mapToDouble(course -> course.getCredit() != null ? course.getCredit() : 0.0)
                 .sum();
-        
-        // 计算总学时
         Integer totalHours = courses.stream()
-                .mapToInt(Course::getTotalHours)
+                .mapToInt(course -> course.getTotalHours() != null ? course.getTotalHours() : 0)
                 .sum();
-        
-        // 计算理论学时
         Integer totalTheoreticalHours = courses.stream()
                 .mapToInt(course -> course.getTheoreticalHours() != null ? course.getTheoreticalHours() : 0)
                 .sum();
-        
-        // 计算实践学时
         Integer totalPracticalHours = courses.stream()
                 .mapToInt(course -> course.getPracticalHours() != null ? course.getPracticalHours() : 0)
                 .sum();
-        
-        // 按课程类型统计
+
         Map<String, Long> courseTypeCount = courses.stream()
-                .collect(Collectors.groupingBy(Course::getCourseType, Collectors.counting()));
-        
-        // 按课程性质统计
+                .collect(Collectors.groupingBy(course -> course.getCourseType() != null ? course.getCourseType() : "未分类", Collectors.counting()));
         Map<String, Long> courseNatureCount = courses.stream()
-                .collect(Collectors.groupingBy(Course::getCourseNature, Collectors.counting()));
-        
-        // 按课程类别统计
+                .collect(Collectors.groupingBy(course -> course.getCourseNature() != null ? course.getCourseNature() : "未分类", Collectors.counting()));
         Map<String, Long> courseCategoryCount = courses.stream()
-                .collect(Collectors.groupingBy(Course::getCourseCategory, Collectors.counting()));
-        
+                .collect(Collectors.groupingBy(course -> course.getCourseCategory() != null ? course.getCourseCategory() : "未分类", Collectors.counting()));
+
         statistics.put("totalCourses", courses.size());
         statistics.put("totalCredit", totalCredit);
         statistics.put("totalHours", totalHours);
@@ -174,7 +172,7 @@ public class CourseServiceImpl implements CourseService {
         statistics.put("courseTypeCount", courseTypeCount);
         statistics.put("courseNatureCount", courseNatureCount);
         statistics.put("courseCategoryCount", courseCategoryCount);
-        
+
         return statistics;
     }
 }

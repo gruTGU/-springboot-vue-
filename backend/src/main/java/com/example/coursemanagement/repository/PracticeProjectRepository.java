@@ -30,7 +30,7 @@ public class PracticeProjectRepository {
      * 根据ID查询项目
      */
     public Optional<PracticeProject> findById(Integer id) {
-        String sql = "SELECT * FROM practice_project WHERE project_id = ?";
+        String sql = "SELECT * FROM practice_project WHERE id = ?";
         List<PracticeProject> projects = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(PracticeProject.class), id);
         return projects.isEmpty() ? Optional.empty() : Optional.of(projects.get(0));
     }
@@ -39,23 +39,36 @@ public class PracticeProjectRepository {
      * 插入新项目
      */
     public int save(PracticeProject project) {
-        String sql = "INSERT INTO practice_project (title, description, publisher, create_time, deadline) VALUES (?, ?, ?, NOW(), ?)";
-        return jdbcTemplate.update(sql, project.getTitle(), project.getDescription(), project.getPublisher(), project.getDeadline());
+        String sql = "INSERT INTO practice_project (course_code, project_name, semester, weeks, credit, remarks, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        return jdbcTemplate.update(sql,
+                project.getCourseCode(),
+                project.getProjectName(),
+                project.getSemester(),
+                project.getWeeks(),
+                project.getCredit(),
+                project.getRemarks());
     }
 
     /**
      * 更新项目
      */
     public int update(PracticeProject project) {
-        String sql = "UPDATE practice_project SET title=?, description=?, publisher=?, deadline=? WHERE project_id=?";
-        return jdbcTemplate.update(sql, project.getTitle(), project.getDescription(), project.getPublisher(), project.getDeadline(), project.getProjectId());
+        String sql = "UPDATE practice_project SET course_code = ?, project_name = ?, semester = ?, weeks = ?, credit = ?, remarks = ?, update_time = NOW() WHERE id = ?";
+        return jdbcTemplate.update(sql,
+                project.getCourseCode(),
+                project.getProjectName(),
+                project.getSemester(),
+                project.getWeeks(),
+                project.getCredit(),
+                project.getRemarks(),
+                project.getId());
     }
 
     /**
      * 删除项目
      */
     public int deleteById(Integer id) {
-        String sql = "DELETE FROM practice_project WHERE project_id = ?";
+        String sql = "DELETE FROM practice_project WHERE id = ?";
         return jdbcTemplate.update(sql, id);
     }
 }

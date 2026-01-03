@@ -197,3 +197,16 @@ export const getCourseStatistics = (programId) => {
     method: 'GET'
   })
 }
+
+/**
+ * 获取指定学期的课程统计信息
+ * @param {number} programId - 培养方案ID
+ * @param {number} semesterId - 学期ID
+ * @returns {Promise}
+ */
+export const getCourseStatisticsBySemester = (programId, semesterId) => {
+  return request({
+    url: `/course/statistics/${programId}/semester/${semesterId}`,
+    method: 'GET'
+  })
+}

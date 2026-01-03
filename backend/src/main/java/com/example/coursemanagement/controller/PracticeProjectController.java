@@ -18,6 +18,7 @@ public class PracticeProjectController {
     @Autowired
     private PracticeProjectService practiceProjectService;
 
+
     /**
      * 获取所有实践项目
      */
@@ -25,6 +26,7 @@ public class PracticeProjectController {
     public ResponseEntity<List<PracticeProject>> listAll() {
         return ResponseEntity.ok(practiceProjectService.list());
     }
+
 
     /**
      * 根据ID获取实践项目
@@ -53,7 +55,7 @@ public class PracticeProjectController {
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Integer id, @RequestBody PracticeProject project) {
         try {
-            project.setProjectId(id);
+            project.setId(id);
             boolean result = practiceProjectService.updateById(project);
             return ResponseEntity.ok(result);
         } catch (Exception e) {

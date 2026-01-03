@@ -209,12 +209,24 @@ public class TrainingProgramRepository implements TrainingProgramRepositoryApi {
                 hasValue = true;
             }
             case "program_name" -> {
-                value = program.getMajorName();
-                hasValue = true;
+                value = program.getProgramName() != null ? program.getProgramName() : program.getMajorName();
+                hasValue = value != null;
             }
             case "program_code" -> {
-                value = program.getMajorName();
-                hasValue = true;
+                value = program.getProgramCode() != null ? program.getProgramCode() : program.getMajorName();
+                hasValue = value != null;
+            }
+            case "major_id" -> {
+                value = program.getMajorId();
+                hasValue = value != null;
+            }
+            case "start_grade" -> {
+                value = program.getStartGrade();
+                hasValue = value != null;
+            }
+            case "teacher_id" -> {
+                value = program.getTeacherId();
+                hasValue = value != null;
             }
             case "duration" -> {
                 value = program.getDuration();
@@ -402,8 +414,13 @@ public class TrainingProgramRepository implements TrainingProgramRepositoryApi {
      * 根据老师ID查询培养方案列表
      */
     public List<TrainingProgram> findByTeacherId(Integer teacherId) {
-        // 由于表中没有teacher_id字段，返回空列表或所有记录
-        // 这里返回所有记录作为临时解决方案
-        return findAll();
+        if (teacherId == null) {
+            return findAll();
+        }
+        if (!isColumnAvailable("teacher_id")) {
+            return findAll();
+        }
+        String sql = "SELECT * FROM training_program WHERE teacher_id = ?";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(TrainingProgram.class), teacherId);
     }
 }

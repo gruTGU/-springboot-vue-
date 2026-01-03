@@ -185,4 +185,12 @@ public class CourseController {
     public ResponseEntity<Map<String, Object>> getCourseStatistics(@PathVariable Integer programId) {
         return ResponseEntity.ok(courseService.getCourseStatistics(programId));
     }
+
+    /**
+     * 获取指定学期的课程统计信息
+     */
+    @GetMapping("/statistics/{programId}/semester/{semesterId}")
+    public ResponseEntity<Map<String, Object>> getCourseStatisticsBySemester(@PathVariable Integer programId, @PathVariable Integer semesterId) {
+        return ResponseEntity.ok(courseService.getCourseStatisticsByProgramAndSemester(programId, semesterId));
+    }
 }

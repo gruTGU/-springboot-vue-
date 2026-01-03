@@ -10,10 +10,13 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 public class PracticeProject {
-    private Integer projectId;
-    private String title;
-    private String description;
-    private String publisher;    // 发布教师/管理员
+    private Integer id;
+    private String courseCode;
+    private String projectName;
+    private Integer semester;
+    private Integer weeks;
+    private Double credit;
+    private String remarks;
     private LocalDateTime createTime;
-    private LocalDateTime deadline;
+    private LocalDateTime updateTime;
 }

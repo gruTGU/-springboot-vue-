@@ -6,7 +6,7 @@
           <!-- 仅改标题：标题 + 副标题（其余不动） -->
           <div class="title-wrap">
             <div class="page-title">实践项目管理</div>
-            <div class="page-subtitle">发布与维护实践项目，支持新增、编辑与截止时间管理</div>
+            <div class="page-subtitle">维护实践课程设计与实习项目，支持按学期管理</div>
           </div>
 
           <el-button type="primary" @click="openDialog">
@@ -16,15 +16,18 @@
       </template>
 
       <el-table :data="projects" style="width: 100%">
-        <el-table-column prop="projectId" label="项目ID" width="100" />
-        <el-table-column prop="title" label="项目标题" min-width="200" />
+        <el-table-column prop="id" label="项目ID" width="100" />
+        <el-table-column prop="courseCode" label="课号" width="140" />
+        <el-table-column prop="projectName" label="名称" min-width="200" />
         <el-table-column
-            prop="description"
-            label="项目描述"
+            prop="remarks"
+            label="备注"
             min-width="300"
             show-overflow-tooltip
         />
-        <el-table-column prop="publisher" label="发布者" width="150" />
+        <el-table-column prop="semester" label="学期" width="80" />
+        <el-table-column prop="weeks" label="周数" width="80" />
+        <el-table-column prop="credit" label="学分" width="80" />
         <el-table-column
             prop="createTime"
             label="创建时间"
@@ -32,8 +35,8 @@
             :formatter="formatDateTime"
         />
         <el-table-column
-            prop="deadline"
-            label="截止时间"
+            prop="updateTime"
+            label="更新时间"
             width="200"
             :formatter="formatDateTime"
         />
@@ -45,7 +48,7 @@
             <el-button
                 type="danger"
                 size="small"
-                @click="handleDelete(scope.row.projectId)"
+                @click="handleDelete(scope.row.id)"
             >
               删除
             </el-button>
@@ -56,26 +59,29 @@
       <!-- 项目表单对话框 -->
       <el-dialog v-model="dialogVisible" title="项目表单" width="600px">
         <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
-          <el-form-item label="项目标题" prop="title">
-            <el-input v-model="form.title" placeholder="请输入项目标题" />
+          <el-form-item label="课号" prop="courseCode">
+            <el-input v-model="form.courseCode" placeholder="请输入课号" />
           </el-form-item>
-          <el-form-item label="项目描述" prop="description">
+          <el-form-item label="名称" prop="projectName">
+            <el-input v-model="form.projectName" placeholder="请输入名称" />
+          </el-form-item>
+          <el-form-item label="学期" prop="semester">
+            <el-select v-model="form.semester" placeholder="选择学期">
+              <el-option v-for="n in 8" :key="n" :label="`第${n}学期`" :value="n" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="周数" prop="weeks">
+            <el-input v-model.number="form.weeks" type="number" placeholder="请输入周数" />
+          </el-form-item>
+          <el-form-item label="学分" prop="credit">
+            <el-input v-model.number="form.credit" type="number" placeholder="请输入学分" />
+          </el-form-item>
+          <el-form-item label="备注" prop="remarks">
             <el-input
-                v-model="form.description"
+                v-model="form.remarks"
                 type="textarea"
                 rows="4"
-                placeholder="请输入项目描述"
-            />
-          </el-form-item>
-          <el-form-item label="发布者" prop="publisher">
-            <el-input v-model="form.publisher" placeholder="请输入发布者" />
-          </el-form-item>
-          <el-form-item label="截止时间" prop="deadline">
-            <el-date-picker
-                v-model="form.deadline"
-                type="datetime"
-                placeholder="选择截止时间"
-                style="width: 100%"
+                placeholder="请输入备注"
             />
           </el-form-item>
         </el-form>
@@ -93,7 +99,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getPracticeProjects,
   addPracticeProject,
@@ -109,18 +115,21 @@ const dialogVisible = ref(false)
 const formRef = ref(null)
 // 表单数据
 const form = ref({
-  projectId: null,
-  title: '',
-  description: '',
-  publisher: '',
-  deadline: null
+  id: null,
+  courseCode: '',
+  projectName: '',
+  semester: null,
+  weeks: null,
+  credit: null,
+  remarks: ''
 })
 // 表单验证规则
 const rules = ref({
-  title: [{ required: true, message: '请输入项目标题', trigger: 'blur' }],
-  description: [{ required: true, message: '请输入项目描述', trigger: 'blur' }],
-  publisher: [{ required: true, message: '请输入发布者', trigger: 'blur' }],
-  deadline: [{ required: true, message: '请选择截止时间', trigger: 'change' }]
+  courseCode: [{ required: true, message: '请输入课号', trigger: 'blur' }],
+  projectName: [{ required: true, message: '请输入名称', trigger: 'blur' }],
+  semester: [{ required: true, message: '请选择学期', trigger: 'change' }],
+  weeks: [{ required: true, message: '请输入周数', trigger: 'blur' }],
+  credit: [{ required: true, message: '请输入学分', trigger: 'blur' }]
 })
 
 // 格式化日期时间
@@ -138,11 +147,13 @@ const openDialog = (project = null) => {
   } else {
     // 新增模式
     form.value = {
-      projectId: null,
-      title: '',
-      description: '',
-      publisher: '',
-      deadline: null
+      id: null,
+      courseCode: '',
+      projectName: '',
+      semester: null,
+      weeks: null,
+      credit: null,
+      remarks: ''
     }
   }
   dialogVisible.value = true
@@ -155,7 +166,7 @@ const handleEdit = (project) => {
 
 // 删除项目
 const handleDelete = (projectId) => {
-  ElMessage.confirm('确定要删除这个项目吗？', '删除确认', {
+  ElMessageBox.confirm('确定要删除这个项目吗？', '删除确认', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
@@ -179,9 +190,9 @@ const handleDelete = (projectId) => {
 const submitForm = () => {
   formRef.value.validate((valid) => {
     if (valid) {
-      if (form.value.projectId) {
+      if (form.value.id) {
         // 更新项目
-        updatePracticeProject(form.value.projectId, form.value)
+        updatePracticeProject(form.value.id, form.value)
             .then(() => {
               ElMessage.success('更新成功')
               dialogVisible.value = false
@@ -238,6 +249,7 @@ onMounted(() => {
   color: rgba(0, 0, 0, 0.86);
   line-height: 1.2;
 }
+
 .page-subtitle {
   font-size: 12px;
   color: #909399;
