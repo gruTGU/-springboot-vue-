@@ -167,16 +167,36 @@
           <template #header>
             <div class="card-header">
               <span>课程列表</span>
-              <el-button type="primary" size="small" @click="handleAddCourse">
-                <el-icon><Plus /></el-icon>
-                添加课程
-              </el-button>
+              <div class="header-actions">
+                <el-button
+                    v-if="shouldShowCourseToggle"
+                    size="small"
+                    @click="toggleCourseCollapse"
+                >
+                  <el-icon><View /></el-icon>
+                  {{ showAllCourses ? "收起" : "展开" }}
+                </el-button>
+                <el-button type="primary" size="small" @click="handleAddCourse">
+                  <el-icon><Plus /></el-icon>
+                  添加课程
+                </el-button>
+              </div>
             </div>
           </template>
-          <el-table :data="programCourses" border stripe>
+          <el-table :data="visibleProgramCourses" border stripe>
             <el-table-column prop="courseId" label="课程ID" width="80" />
-            <el-table-column prop="courseName" label="课程名称" width="200" />
-            <el-table-column prop="courseCode" label="课程代码" width="120" />
+            <el-table-column
+                prop="courseName"
+                label="课程名称"
+                width="200"
+                show-overflow-tooltip
+            />
+            <el-table-column
+                prop="courseCode"
+                label="课程代码"
+                width="120"
+                show-overflow-tooltip
+            />
             <el-table-column prop="credit" label="学分" width="80" />
             <el-table-column prop="totalHours" label="总学时" width="80" />
             <el-table-column prop="courseType" label="课程类型" width="120" />
@@ -339,6 +359,13 @@
                   <el-icon><View /></el-icon>
                   {{ showFullScheduleTable ? "隐藏表格" : "显示表格" }}
                 </el-button>
+                <el-button
+                    v-if="showFullScheduleTable && shouldShowScheduleToggle"
+                    @click="toggleScheduleCollapse"
+                >
+                  <el-icon><View /></el-icon>
+                  {{ showAllScheduleRows ? "收起" : "展开" }}
+                </el-button>
               </div>
             </div>
           </template>
@@ -346,7 +373,7 @@
           <!-- 完整课程安排表格 -->
           <el-table
               v-if="showFullScheduleTable"
-              :data="fullScheduleTableData"
+              :data="visibleFullScheduleTableData"
               border
               stripe
               style="margin-bottom: 20px"
@@ -510,7 +537,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from "vue";
+import { ref, onMounted, reactive, computed } from "vue";
 import { Plus, Edit, Delete, Menu, Download } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
@@ -557,10 +584,36 @@ const activeStep = ref(0);
 const selectedSemester = ref(1);
 const semesterCourses = ref([]);
 const semesterStats = ref(null);
+const showAllCourses = ref(false);
+const showAllScheduleRows = ref(false);
+const courseCollapseLimit = 8;
+const scheduleCollapseLimit = 12;
 
 // 完整课程安排表格相关状态
 const showFullScheduleTable = ref(false);
 const fullScheduleTableData = ref([]);
+const visibleProgramCourses = computed(() => {
+  if (showAllCourses.value) return programCourses.value;
+  return programCourses.value.slice(0, courseCollapseLimit);
+});
+const shouldShowCourseToggle = computed(
+  () => programCourses.value.length > courseCollapseLimit
+);
+const visibleFullScheduleTableData = computed(() => {
+  if (showAllScheduleRows.value) return fullScheduleTableData.value;
+  return fullScheduleTableData.value.slice(0, scheduleCollapseLimit);
+});
+const shouldShowScheduleToggle = computed(
+  () => fullScheduleTableData.value.length > scheduleCollapseLimit
+);
+
+const toggleCourseCollapse = () => {
+  showAllCourses.value = !showAllCourses.value;
+};
+
+const toggleScheduleCollapse = () => {
+  showAllScheduleRows.value = !showAllScheduleRows.value;
+};
 
 // 课程表单相关状态
 const courseFormVisible = ref(false);
@@ -711,6 +764,8 @@ const handleDeleteProgram = async (programId) => {
 // 管理课程
 const handleManageCourses = async (program) => {
   Object.assign(currentProgram, program);
+  showAllCourses.value = false;
+  showAllScheduleRows.value = false;
   await fetchProgramCourses(program.programId);
   courseDialogVisible.value = true;
 };
@@ -720,6 +775,7 @@ const fetchProgramCourses = async (programId) => {
   try {
     const courses = await getCoursesByProgram(programId);
     programCourses.value = courses;
+    showAllCourses.value = false;
   } catch (error) {
     ElMessage.error("获取课程列表失败");
     console.error("获取课程列表失败:", error);
@@ -838,6 +894,7 @@ const handleExportFullSchedule = async () => {
 
     fullScheduleTableData.value = tableData;
     showFullScheduleTable.value = true;
+    showAllScheduleRows.value = false;
 
     // 这里可以添加导出Excel的逻辑
     ElMessage.success("完整课程安排已生成");

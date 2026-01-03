@@ -363,26 +363,74 @@ const fetchWeekSchedule = async () => {
 };
 
 // ========== 导出 ==========
-const handleExport = () => {
+const escapeCsvValue = (value) => {
+  if (value === null || value === undefined) return "";
+  const stringValue = String(value);
+  if (stringValue.includes(",") || stringValue.includes("\"") || stringValue.includes("\n")) {
+    return `"${stringValue.replace(/"/g, '""')}"`;
+  }
+  return stringValue;
+};
+
+const downloadCsv = (rows, filename) => {
+  const content = rows.map((row) => row.map(escapeCsvValue).join(",")).join("\n");
+  const blob = new Blob([`\ufeff${content}`], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+const handleExport = async () => {
   if (!canExport.value) {
     ElMessage.warning("请先选择学期与班级/教师并查询");
     return;
   }
-
-  if (viewMode.value === "class") {
-    window.open(
-        `/api/course-schedule/export?semesterId=${selectedSemesterId.value}&className=${encodeURIComponent(
-            selectedClassName.value
-        )}`,
-        "_blank"
+  try {
+    const schedules = await getCourseSchedules(selectedSemesterId.value);
+    const filterValue =
+        viewMode.value === "class" ? selectedClassName.value : selectedTeacher.value;
+    const filtered = schedules.filter((schedule) =>
+        viewMode.value === "class"
+            ? schedule.className === filterValue
+            : schedule.teacher === filterValue
     );
-  } else {
-    window.open(
-        `/api/course-schedule/export/teacher?semesterId=${selectedSemesterId.value}&teacher=${encodeURIComponent(
-            selectedTeacher.value
-        )}`,
-        "_blank"
-    );
+    if (filtered.length === 0) {
+      ElMessage.warning("暂无可导出的课表数据");
+      return;
+    }
+    const header = [
+      "课程名",
+      "学期",
+      "星期",
+      "节次",
+      "上课时间",
+      "教室",
+      "教师",
+      "班级",
+    ];
+    const rows = filtered.map((schedule) => [
+      schedule.courseName || "",
+      schedule.semesterId || "",
+      schedule.weekDay || "",
+      schedule.classSection || "",
+      `${schedule.startTime || ""}-${schedule.endTime || ""}`,
+      schedule.classroom || "",
+      schedule.teacher || "",
+      schedule.className || "",
+    ]);
+    const filename = `course_schedule_semester${selectedSemesterId.value}_${
+        viewMode.value === "class" ? `class_${filterValue}` : `teacher_${filterValue}`
+    }.csv`;
+    downloadCsv([header, ...rows], filename);
+    ElMessage.success("课表已导出");
+  } catch (error) {
+    ElMessage.error("导出课表失败");
+    console.error("导出课表失败:", error);
   }
 };
 

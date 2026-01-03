@@ -15,6 +15,8 @@ import java.util.Optional;
 @Repository
 public class CourseRepository {
 
+    private static final String BASE_SELECT = "SELECT course_id, course_name, course_code, major_id, program_id, credit, total_hours, theory_hours AS theoretical_hours, experiment_hours AS practical_hours, design_hours, course_type_id, course_nature, exam_mark, course_category, teacher_ids, description, create_time, update_time FROM course";
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -22,7 +24,7 @@ public class CourseRepository {
      * 查询所有课程
      */
     public List<Course> findAll() {
-        String sql = "SELECT * FROM course";
+        String sql = BASE_SELECT;
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Course.class));
     }
 
@@ -30,7 +32,7 @@ public class CourseRepository {
      * 根据ID查询课程
      */
     public Optional<Course> findById(Integer id) {
-        String sql = "SELECT * FROM course WHERE course_id = ?";
+        String sql = BASE_SELECT + " WHERE course_id = ?";
         List<Course> courses = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Course.class), id);
         return courses.isEmpty() ? Optional.empty() : Optional.of(courses.get(0));
     }
@@ -142,7 +144,7 @@ public class CourseRepository {
      * 搜索课程
      */
     public List<Course> search(String keyword) {
-        String sql = "SELECT * FROM course WHERE course_name LIKE ? OR course_code LIKE ?";
+        String sql = BASE_SELECT + " WHERE course_name LIKE ? OR course_code LIKE ?";
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Course.class), "%" + keyword + "%", "%" + keyword + "%");
     }
 
@@ -151,7 +153,7 @@ public class CourseRepository {
      */
     public List<Course> findByPage(int page, int limit) {
         int offset = (page - 1) * limit;
-        String sql = "SELECT * FROM course LIMIT ? OFFSET ?";
+        String sql = BASE_SELECT + " LIMIT ? OFFSET ?";
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Course.class), limit, offset);
     }
 
@@ -167,7 +169,7 @@ public class CourseRepository {
      * 根据培养方案ID查询课程列表
      */
     public List<Course> findByProgramId(Integer programId) {
-        String sql = "SELECT * FROM course WHERE program_id = ?";
+        String sql = BASE_SELECT + " WHERE program_id = ?";
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Course.class), programId);
     }
     
@@ -175,7 +177,7 @@ public class CourseRepository {
      * 根据专业ID查询课程列表
      */
     public List<Course> findByMajorId(Integer majorId) {
-        String sql = "SELECT * FROM course WHERE major_id = ?";
+        String sql = BASE_SELECT + " WHERE major_id = ?";
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Course.class), majorId);
     }
     
@@ -183,15 +185,24 @@ public class CourseRepository {
      * 根据培养方案ID和学期ID查询课程列表
      */
     public List<Course> findByProgramIdAndSemesterId(Integer programId, Integer semesterId) {
-        String sql = "SELECT c.* FROM course c JOIN course_semester cs ON c.course_id = cs.course_id WHERE c.program_id = ? AND cs.semester_id = ?";
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Course.class), programId, semesterId);
+        String sql = "SELECT DISTINCT c.course_id, c.course_name, c.course_code, c.major_id, c.program_id, c.credit, c.total_hours, " +
+                "c.theory_hours AS theoretical_hours, c.experiment_hours AS practical_hours, c.design_hours, c.course_type_id, " +
+                "c.course_nature, c.exam_mark, c.course_category, c.teacher_ids, c.description, c.create_time, c.update_time " +
+                "FROM course c " +
+                "LEFT JOIN course_semester cs ON c.course_id = cs.course_id " +
+                "LEFT JOIN practice_project pp ON pp.course_code = c.course_code " +
+                "WHERE c.program_id = ? AND (cs.semester_id = ? OR pp.semester = ?)";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Course.class), programId, semesterId, semesterId);
     }
     
     /**
      * 根据专业ID和学期ID查询课程列表
      */
     public List<Course> findByMajorIdAndSemesterId(Integer majorId, Integer semesterId) {
-        String sql = "SELECT c.* FROM course c JOIN course_semester cs ON c.course_id = cs.course_id WHERE c.major_id = ? AND cs.semester_id = ?";
+        String sql = "SELECT c.course_id, c.course_name, c.course_code, c.major_id, c.program_id, c.credit, c.total_hours, " +
+                "c.theory_hours AS theoretical_hours, c.experiment_hours AS practical_hours, c.design_hours, c.course_type_id, " +
+                "c.course_nature, c.exam_mark, c.course_category, c.teacher_ids, c.description, c.create_time, c.update_time " +
+                "FROM course c JOIN course_semester cs ON c.course_id = cs.course_id WHERE c.major_id = ? AND cs.semester_id = ?";
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Course.class), majorId, semesterId);
     }
 }
